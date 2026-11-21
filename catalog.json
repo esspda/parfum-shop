@@ -1,5 +1,5 @@
 {
- "shop_name": "Parfum Drop",
+ "shop_name": "Kiorchik Aroma",
  "full_bottle_ml": 100,
  "aromas": [
   {
@@ -18,8 +18,14 @@
     "20": 2470,
     "30": 3550
    },
+   "tagline": "Мед, тютюн і тепла ваніль",
+   "seasons": [
+    "осінь",
+    "зима"
+   ],
+   "is_new": false,
    "in_stock": true,
-   "image": "images/naxos.jpg"
+   "image": "images/naxos_bottle.jpg"
   },
   {
    "id": "najim",
@@ -37,8 +43,14 @@
     "30": 1920,
     "100": 3850
    },
+   "tagline": "Карамель, кардамон і уд",
+   "seasons": [
+    "осінь",
+    "зима"
+   ],
+   "is_new": true,
    "in_stock": true,
-   "image": "images/najim.jpg"
+   "image": "images/najim_bottle.jpg"
   },
   {
    "id": "layton",
@@ -56,8 +68,15 @@
     "20": 2500,
     "30": 3650
    },
+   "tagline": "Зелене яблуко, лаванда і ваніль",
+   "seasons": [
+    "весна",
+    "осінь",
+    "зима"
+   ],
+   "is_new": false,
    "in_stock": true,
-   "image": "images/layton.jpg"
+   "image": "images/layton_bottle.jpg"
   }
  ]
 }

@@ -3,100 +3,133 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Parfum Drop</title>
+<title>Kiorchik Aroma</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f6f1ea; --card: #fffdf9; --text: #1d1a17; --muted: #8a8178;
-    --line: #e6ddd1; --gold: #b08a4a; --gold-soft: #f1e6d3; --chip: #efe8de;
-    --danger: #b4533c;
-  }
-  .dark {
-    --bg: #12100e; --card: #1c1916; --text: #f3ece2; --muted: #9b9186;
-    --line: #2d2823; --gold: #d4ad6a; --gold-soft: #2e271d; --chip: #26221d;
+    --bg: #0a1222; --bg2: #0e1a30; --card1: #1d3156; --card2: #132341;
+    --line: rgba(201,169,110,.28); --gold: #c9a96e; --gold2: #e6cf9f;
+    --text: #f2ece0; --muted: #9fb0c8; --tile: #f3eee6; --danger: #e08a72;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text);
     font-family: "Manrope", system-ui, sans-serif; font-size: 15px; }
-  body { padding-bottom: 96px; min-height: 100vh; }
+  html, body { overflow-x: hidden; }
+  body { padding-bottom: 96px; min-height: 100vh;
+    background: radial-gradient(120% 60% at 50% 0%, #16284d 0%, var(--bg) 60%); background-attachment: fixed; }
   .serif { font-family: "Cormorant Garamond", Georgia, serif; }
-  button { font-family: inherit; cursor: pointer; }
+  button { font-family: inherit; cursor: pointer; color: inherit; }
+  svg { display: block; }
 
-  header { padding: 22px 18px 8px; display: flex; align-items: flex-end; justify-content: space-between; }
-  header h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: .5px; }
-  header p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-  .cart-pill { border: 1px solid var(--line); background: var(--card); color: var(--text);
-    border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 13px; }
-  .cart-pill b { color: var(--gold); }
+  /* шапка */
+  .top { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 16px 14px 6px; }
+  .logo { text-align: center; font-size: 27px; font-style: italic; font-weight: 600; letter-spacing: 2px; color: var(--gold2); }
+  .iconbtn { width: 44px; height: 44px; border: 0; background: none; display: flex; align-items: center; justify-content: center; position: relative; color: var(--gold2); padding: 0; }
+  .dot { position: absolute; top: 5px; right: 4px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--gold); color: #0a1222;
+    font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
 
-  .filters { display: flex; gap: 8px; padding: 10px 18px 4px; overflow-x: auto; scrollbar-width: none; }
-  .filters::-webkit-scrollbar { display: none; }
-  .chip { border: 1px solid var(--line); background: transparent; color: var(--text);
-    padding: 7px 14px; border-radius: 999px; font-size: 13px; white-space: nowrap; }
-  .chip.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+  /* пошук + фільтри */
+  .searchrow { display: flex; gap: 10px; padding: 10px 16px 4px; }
+  .search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 14px; padding: 0 14px; height: 48px; background: rgba(255,255,255,.02); }
+  .search input { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 15px; min-width: 0; }
+  .search input::placeholder { color: var(--muted); }
+  .filterbtn { flex: none; height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.02);
+    display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; position: relative; color: var(--gold2); }
+  .filterbtn.on { background: var(--gold); color: #0a1222; border-color: var(--gold); }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 18px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
-    display: flex; flex-direction: column; text-align: left; padding: 0; color: var(--text); }
-  .card .ph { aspect-ratio: 1; background: #fff; display: flex; align-items: center; justify-content: center; position: relative; }
-  .card .ph img { width: 100%; height: 100%; object-fit: contain; }
-  .badge { position: absolute; top: 8px; left: 8px; background: var(--text); color: var(--bg);
-    font-size: 10px; font-weight: 700; letter-spacing: .6px; padding: 4px 8px; border-radius: 999px; text-transform: uppercase; }
-  .card .info { padding: 10px 12px 12px; }
-  .brand { font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-  .card .name { font-size: 20px; line-height: 1.1; margin: 3px 0 6px; font-weight: 600; }
-  .from { font-size: 13px; color: var(--gold); font-weight: 700; }
+  .title { text-align: center; font-size: 26px; font-weight: 500; margin: 18px 0 4px; }
+  .sub { text-align: center; color: var(--muted); font-size: 12.5px; margin-bottom: 12px; }
+  .active { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; padding: 0 16px 8px; }
+  .tag { border: 1px solid var(--line); background: none; color: var(--gold2); border-radius: 999px; padding: 5px 10px 5px 12px; font-size: 12.5px; }
+  .tag span { opacity: .6; margin-left: 4px; }
 
-  /* detail */
-  .detail .hero { background: #fff; aspect-ratio: 1.15; display: flex; align-items: center; justify-content: center; }
-  .detail .hero img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .detail .body { padding: 18px; }
-  .detail h2 { font-size: 34px; line-height: 1.05; margin: 4px 0 6px; font-weight: 600; }
-  .meta { color: var(--muted); font-size: 13px; }
-  .desc { line-height: 1.55; margin: 14px 0; }
-  .notes { background: var(--gold-soft); border-radius: 14px; padding: 12px 14px; font-size: 13.5px; line-height: 1.5; }
-  .notes span { display: block; font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 4px; }
-  .sec { margin: 20px 0 10px; font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  /* картки */
+  .list { padding: 6px 16px; display: flex; flex-direction: column; gap: 14px; }
+  .card { display: flex; gap: 14px; align-items: stretch; text-align: left; border: 1px solid rgba(255,255,255,.06);
+    background: linear-gradient(135deg, var(--card1), var(--card2)); border-radius: 20px; padding: 12px; position: relative;
+    box-shadow: 0 10px 24px rgba(0,0,0,.25); }
+  .card .ph { width: 92px; height: 118px; flex: none; border-radius: 14px; background: radial-gradient(circle at 50% 40%, #fffdf8, var(--tile));
+    display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .card .ph img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; padding: 6px; }
+  .card .info { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 4px 0; }
+  .brand { font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  .card .name { font-size: 21px; line-height: 1.08; text-transform: uppercase; letter-spacing: .6px; margin: 3px 0 5px; font-weight: 600; }
+  .card .tl { color: var(--muted); font-size: 13px; line-height: 1.35; }
+  .card .bottom { margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: space-between; align-items: flex-end; padding-top: 8px; }
+  .season { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .price { font-weight: 700; font-size: 15.5px; color: var(--gold2); white-space: nowrap; margin-left: auto; }
+  .new { position: absolute; top: 10px; right: 12px; font-size: 9.5px; letter-spacing: 1px; font-weight: 800; text-transform: uppercase;
+    background: var(--gold); color: #0a1222; padding: 4px 8px; border-radius: 999px; }
+  .card.oos { opacity: .55; }
+  .empty { text-align: center; color: var(--muted); padding: 50px 24px; line-height: 1.6; }
+  .linkbtn { border: 0; background: none; color: var(--gold); font-weight: 700; font-size: 14px; margin-top: 8px; }
+
+  /* фільтри (нижня шторка) */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20; }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg2); border-radius: 24px 24px 0 0; padding: 10px 18px 22px;
+    transform: translateY(105%); transition: transform .25s ease, visibility .25s; visibility: hidden; z-index: 21; border-top: 1px solid var(--line); max-height: 85vh; overflow: auto; }
+  .sheet.show { transform: translateY(0); visibility: visible; }
+  .grab { width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); margin: 0 auto 12px; }
+  .sheet h3 { margin: 0 0 4px; font-size: 26px; font-weight: 500; text-align: center; }
+  .sec { margin: 18px 0 10px; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--line); background: none; padding: 9px 14px; border-radius: 12px; font-size: 14px; font-weight: 600; }
+  .chip.on { background: var(--gold); border-color: var(--gold); color: #0a1222; }
+  .sheetbtns { display: flex; gap: 10px; margin-top: 24px; }
+  .sheetbtns button { flex: 1; height: 50px; border-radius: 14px; font-weight: 700; font-size: 15px; }
+  .ghost { border: 1px solid var(--line); background: none; color: var(--gold2); }
+  .solid { border: 0; background: var(--gold); color: #0a1222; }
+
+  /* сторінка аромату */
+  .hero { margin: 8px 16px 0; border-radius: 24px; height: 340px; background: radial-gradient(circle at 50% 45%, #fffdf8 0%, var(--tile) 70%);
+    display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+  .hero img { height: 88%; object-fit: contain; mix-blend-mode: multiply; }
+  .dbody { padding: 18px 18px 0; }
+  .dbody h2 { font-size: 36px; line-height: 1.02; margin: 4px 0 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .meta { color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .desc { line-height: 1.6; margin: 14px 0; color: #dcd5c8; }
+  .notes { border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; font-size: 14px; line-height: 1.5; background: rgba(201,169,110,.06); }
+  .notes .brand { display: block; margin-bottom: 4px; }
   .vols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .vol { border: 1.5px solid var(--line); background: var(--card); color: var(--text); border-radius: 14px; padding: 10px 6px; text-align: center; }
+  .vol { border: 1px solid var(--line); background: rgba(255,255,255,.02); border-radius: 14px; padding: 11px 6px; text-align: center; }
   .vol .ml { font-weight: 700; font-size: 15px; }
   .vol .pr { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .vol.on { border-color: var(--gold); background: var(--gold-soft); }
-  .vol.on .pr { color: var(--gold); font-weight: 600; }
-  .vol.full { grid-column: span 3; display: flex; justify-content: space-between; padding: 12px 14px; }
+  .vol.on { border-color: var(--gold); background: rgba(201,169,110,.16); }
+  .vol.on .pr { color: var(--gold2); font-weight: 600; }
+  .vol.full { grid-column: span 3; display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
-  .orig { margin-top: 18px; font-size: 13px; color: var(--muted); text-align: center; }
-  .oos { color: var(--danger); font-weight: 600; margin-top: 12px; }
+  .orig { margin: 20px 0 6px; font-size: 13px; color: var(--muted); text-align: center; }
+  .oosnote { color: var(--danger); font-weight: 600; margin-top: 14px; }
 
-  /* cart */
-  .cart { padding: 4px 18px; }
-  .cart h2 { font-size: 30px; margin: 18px 0 12px; font-weight: 600; }
-  .row { display: flex; gap: 12px; align-items: center; background: var(--card); border: 1px solid var(--line);
-    border-radius: 16px; padding: 10px; margin-bottom: 10px; }
-  .row img { width: 58px; height: 58px; object-fit: contain; background: #fff; border-radius: 10px; }
+  /* кошик */
+  .cart { padding: 0 16px; }
+  .row { display: flex; gap: 12px; align-items: center; background: linear-gradient(135deg, var(--card1), var(--card2));
+    border-radius: 18px; padding: 10px; margin-bottom: 10px; }
+  .row .ph { width: 54px; height: 66px; border-radius: 10px; background: var(--tile); flex: none; display: flex; align-items: center; justify-content: center; }
+  .row .ph img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; padding: 4px; }
   .row .t { flex: 1; min-width: 0; }
   .row .n { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .s { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .row .s { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
   .qty { display: flex; align-items: center; gap: 8px; }
-  .qty button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 17px; line-height: 1; }
+  .qty button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: none; color: var(--gold2); font-size: 17px; line-height: 1; }
   .qty b { min-width: 16px; text-align: center; }
   .total { display: flex; justify-content: space-between; padding: 14px 4px; font-size: 17px; font-weight: 700; border-top: 1px dashed var(--line); margin-top: 6px; }
-  .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+  .total span:last-child { color: var(--gold2); }
 
-  /* власна кнопка, якщо відкрито не в Telegram */
-  #fallbackBtn { position: fixed; left: 14px; right: 14px; bottom: 14px; padding: 16px; border: 0; border-radius: 16px;
-    background: var(--text); color: var(--bg); font-weight: 700; font-size: 15px; display: none; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-  #backBtn { display: none; margin: 14px 18px 0; border: 0; background: none; color: var(--muted); font-size: 14px; padding: 0; }
-  .toast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%) translateY(-80px); transition: transform .25s;
-    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; z-index: 9; }
+  #fallbackBtn { position: fixed; left: 14px; right: 14px; bottom: 14px; height: 54px; border: 0; border-radius: 16px; z-index: 10;
+    background: var(--gold); color: #0a1222; font-weight: 800; font-size: 15px; display: none; box-shadow: 0 10px 28px rgba(0,0,0,.4); }
+  .toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%) translateY(-90px); transition: transform .25s;
+    background: var(--gold); color: #0a1222; padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 700; z-index: 30; }
   .toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
-<button id="backBtn">← Назад</button>
 <main id="app"></main>
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet"></div>
 <button id="fallbackBtn"></button>
 <div class="toast" id="toast"></div>
 
@@ -104,27 +137,38 @@
 const tg = window.Telegram && window.Telegram.WebApp;
 // При запуску з кнопки клавіатури initData порожній, тому перевіряємо платформу
 const inTg = !!(tg && tg.platform && tg.platform !== "unknown");
-const S = { catalog: null, cart: {}, view: "list", current: null, ml: null, filter: "all" };
+const S = { catalog: null, cart: {}, view: "list", current: null, ml: null, q: "",
+            f: { vols: [], seasons: [] }, draft: null };
 const $app = document.getElementById("app");
+const SEASONS = [["весна", "🌸"], ["літо", "☀️"], ["осінь", "🍂"], ["зима", "❄️"]];
 
-if (tg) { tg.ready(); tg.expand(); }
-if ((tg && tg.colorScheme === "dark") || (!inTg && matchMedia("(prefers-color-scheme: dark)").matches))
-  document.documentElement.classList.add("dark");
-
+if (tg) {
+  tg.ready(); tg.expand();
+  try { tg.setHeaderColor("#0a1222"); tg.setBackgroundColor("#0a1222"); } catch (e) {}
+}
 try { S.cart = JSON.parse(sessionStorage.getItem("cart") || "{}"); } catch (e) { S.cart = {}; }
 const saveCart = () => { try { sessionStorage.setItem("cart", JSON.stringify(S.cart)); } catch (e) {} };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const money = n => n.toLocaleString("uk-UA").replace(/,/g, " ") + " грн";
+const money = n => n.toLocaleString("uk-UA").replace(/[\s,]/g, " ") + " грн";
 const byId = id => S.catalog.aromas.find(a => a.id === id);
 const FULL = () => String(S.catalog.full_bottle_ml);
-const haptic = t => tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(t || "light");
+const volName = ml => ml === FULL() ? `Флакон ${ml} мл` : `${ml} мл`;
+const haptic = t => { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(t || "light"); } catch (e) {} };
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+const ICON = {
+  bag: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`,
+  back: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg>`,
+  search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`,
+  filter: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>`,
+};
 
 function itemOf(key) {               // key: a-<id>-<ml>
   const [, id, ml] = key.split("-");
   const a = byId(id);
   if (!a || !a.prices[ml]) return null;
-  return { a, ml, price: a.prices[ml], label: ml === FULL() ? `флакон ${ml} мл` : `${ml} мл` };
+  return { a, ml, price: a.prices[ml], label: volName(ml) };
 }
 function cartStats() {
   let count = 0, total = 0;
@@ -137,7 +181,7 @@ function toast(t) {
   clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1400);
 }
 
-/* ---------- головна / нижня кнопка ---------- */
+/* ---------- нижня головна кнопка ---------- */
 let mainHandler = null;
 function setMain(text, handler) {
   mainHandler = handler;
@@ -145,7 +189,7 @@ function setMain(text, handler) {
   if (inTg) {
     tg.MainButton.offClick(onMain);
     if (!text) { tg.MainButton.hide(); return; }
-    tg.MainButton.setParams({ text, is_visible: true, is_active: true });
+    tg.MainButton.setParams({ text, color: "#c9a96e", text_color: "#0a1222", is_visible: true, is_active: true });
     tg.MainButton.onClick(onMain);
   } else {
     fb.style.display = text ? "block" : "none";
@@ -154,51 +198,131 @@ function setMain(text, handler) {
   }
 }
 function onMain() { mainHandler && mainHandler(); }
-function setBack(show) {
-  if (inTg) { show ? tg.BackButton.show() : tg.BackButton.hide(); }
-  else document.getElementById("backBtn").style.display = show ? "block" : "none";
+function setBack(show) { if (inTg) show ? tg.BackButton.show() : tg.BackButton.hide(); }
+function goBack() {
+  if (document.getElementById("sheet").classList.contains("show")) return closeFilters();
+  S.view === "cart" && S.current ? S.view = "detail" : (S.view = "list", S.current = null);
+  render();
 }
-function goBack() { S.view === "cart" && S.current ? S.view = "detail" : (S.view = "list", S.current = null); render(); }
 if (inTg) tg.BackButton.onClick(goBack);
-document.getElementById("backBtn").onclick = goBack;
 
+function topBar(withBack) {
+  const { count } = cartStats();
+  return `<div class="top">
+    ${withBack && !inTg ? `<button class="iconbtn" id="back">${ICON.back}</button>` : `<span></span>`}
+    <div class="logo serif">${esc(S.catalog.shop_name)}</div>
+    <button class="iconbtn" id="bag">${ICON.bag}${count ? `<span class="dot">${count}</span>` : ""}</button>
+  </div>`;
+}
+function bindTop() {
+  const b = document.getElementById("back"); if (b) b.onclick = goBack;
+  document.getElementById("bag").onclick = () => { S.view = "cart"; render(); };
+}
 function cartButton() {
   const { count, total } = cartStats();
   setMain(count ? `Кошик · ${count} · ${money(total)}` : "", () => { S.view = "cart"; render(); });
 }
 
+/* ---------- фільтри ---------- */
+const decants = a => Object.keys(a.prices).filter(ml => ml !== FULL());
+const minPrice = a => Math.min(...decants(a).map(ml => a.prices[ml]));
+function allVols() {
+  const set = new Set();
+  S.catalog.aromas.forEach(a => Object.keys(a.prices).forEach(ml => set.add(ml)));
+  return [...set].sort((x, y) => +x - +y);
+}
+function matches(a, f) {
+  const q = S.q.trim().toLowerCase();
+  if (q && !`${a.brand} ${a.name} ${a.notes} ${a.tagline} ${a.family}`.toLowerCase().includes(q)) return false;
+  if (f.vols.length && !f.vols.some(ml => a.prices[ml])) return false;
+  if (f.seasons.length && !f.seasons.some(s => (a.seasons || []).includes(s))) return false;
+  return true;
+}
+const filterCount = () => S.f.vols.length + S.f.seasons.length;
+
+function openFilters() {
+  S.draft = { vols: [...S.f.vols], seasons: [...S.f.seasons] };
+  renderSheet();
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("sheet").classList.add("show");
+  setMain("", null); setBack(true); haptic();
+}
+function closeFilters() {
+  document.getElementById("overlay").classList.remove("show");
+  document.getElementById("sheet").classList.remove("show");
+  render();
+}
+document.getElementById("overlay").onclick = closeFilters;
+
+function renderSheet() {
+  const d = S.draft;
+  const n = S.catalog.aromas.filter(a => matches(a, d)).length;
+  const sheet = document.getElementById("sheet");
+  sheet.innerHTML = `<div class="grab"></div><h3 class="serif">Фільтри</h3>
+    <div class="sec">Обʼєм</div>
+    <div class="chips">${allVols().map(ml =>
+      `<button class="chip ${d.vols.includes(ml) ? "on" : ""}" data-v="${ml}">${volName(ml)}</button>`).join("")}</div>
+    <div class="sec">Сезон</div>
+    <div class="chips">${SEASONS.map(([s, e]) =>
+      `<button class="chip ${d.seasons.includes(s) ? "on" : ""}" data-s="${s}">${e} ${cap(s)}</button>`).join("")}</div>
+    <div class="sheetbtns">
+      <button class="ghost" id="reset">Скинути</button>
+      <button class="solid" id="apply">${n ? `Показати ${n}` : "Нічого не знайдено"}</button>
+    </div>`;
+  const toggle = (arr, v) => arr.includes(v) ? arr.splice(arr.indexOf(v), 1) : arr.push(v);
+  sheet.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { toggle(d.vols, b.dataset.v); haptic("soft"); renderSheet(); });
+  sheet.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { toggle(d.seasons, b.dataset.s); haptic("soft"); renderSheet(); });
+  sheet.querySelector("#reset").onclick = () => { d.vols = []; d.seasons = []; renderSheet(); };
+  sheet.querySelector("#apply").onclick = () => { S.f = d; closeFilters(); };
+}
+
 /* ---------- екрани ---------- */
-function minPrice(a) {
-  return Math.min(...Object.entries(a.prices).filter(([ml]) => ml !== FULL()).map(([, p]) => p));
+function cardPrice(a) {
+  const own = S.f.vols.filter(ml => a.prices[ml]);
+  if (own.length === 1) return `${volName(own[0])} · ${money(a.prices[own[0]])}`;
+  return `від ${money(minPrice(a))}`;
 }
 
 function renderList() {
-  const { count } = cartStats();
-  const genders = ["all", ...new Set(S.catalog.aromas.map(a => a.gender))];
-  const list = S.catalog.aromas.filter(a => S.filter === "all" || a.gender === S.filter);
+  const list = S.catalog.aromas.filter(a => matches(a, S.f));
+  const fc = filterCount();
+  const tags = [...S.f.vols.map(v => [`v`, v, volName(v)]), ...S.f.seasons.map(s => [`s`, s, cap(s)])];
   $app.innerHTML = `
-    <header>
-      <div><h1 class="serif">${esc(S.catalog.shop_name)}</h1><p>Оригінальні парфуми на розпив</p></div>
-      ${count ? `<button class="cart-pill" id="pill">Кошик <b>${count}</b></button>` : ""}
-    </header>
-    <div class="filters">${genders.map(g =>
-      `<button class="chip ${S.filter === g ? "on" : ""}" data-g="${esc(g)}">${g === "all" ? "Усі" : esc(g)}</button>`).join("")}
+    ${topBar(false)}
+    <div class="searchrow">
+      <label class="search">${ICON.search}<input id="q" placeholder="Знайти аромат" value="${esc(S.q)}" autocomplete="off"></label>
+      <button class="filterbtn ${fc ? "on" : ""}" id="filters">${ICON.filter}Фільтри${fc ? ` · ${fc}` : ""}</button>
     </div>
-    <div class="grid">${list.map(a => `
-      <button class="card" data-id="${a.id}">
-        <div class="ph">${a.image ? `<img src="${a.image}" alt="">` : ""}
-          ${!a.in_stock ? `<span class="badge">Немає</span>` : ""}</div>
+    <div class="title serif">Наша колекція</div>
+    <div class="sub">Оригінальні парфуми на розпив</div>
+    ${tags.length ? `<div class="active">${tags.map(([t, v, l]) =>
+      `<button class="tag" data-t="${t}" data-v="${v}">${esc(l)}<span>✕</span></button>`).join("")}</div>` : ""}
+    <div class="list">${list.length ? list.map(a => `
+      <button class="card ${a.in_stock ? "" : "oos"}" data-id="${a.id}">
+        <div class="ph">${a.image ? `<img src="${a.image}" alt="">` : ""}</div>
         <div class="info">
           <div class="brand">${esc(a.brand)}</div>
           <div class="name serif">${esc(a.name)}</div>
-          <div class="from">від ${money(minPrice(a))}</div>
+          <div class="tl">${esc(a.tagline || a.notes)}</div>
+          <div class="bottom">
+            <span class="season">${(a.seasons || []).map(s => (SEASONS.find(x => x[0] === s) || [, ""])[1]).join(" ")}</span>
+            <span class="price">${a.in_stock ? cardPrice(a) : "Немає"}</span>
+          </div>
         </div>
-      </button>`).join("")}
+        ${a.is_new ? `<span class="new">Новинка</span>` : ""}
+      </button>`).join("")
+      : `<div class="empty">Нічого не знайдено 🕊<br><button class="linkbtn" id="clearAll">Скинути пошук і фільтри</button></div>`}
     </div>`;
-  $app.querySelectorAll(".chip").forEach(b => b.onclick = () => { S.filter = b.dataset.g; render(); });
+  bindTop();
+  const q = document.getElementById("q");
+  q.oninput = () => { S.q = q.value; const pos = q.selectionStart; renderList(); const n = document.getElementById("q"); n.focus(); n.setSelectionRange(pos, pos); };
+  document.getElementById("filters").onclick = openFilters;
+  $app.querySelectorAll(".tag").forEach(b => b.onclick = () => {
+    const arr = b.dataset.t === "v" ? S.f.vols : S.f.seasons; arr.splice(arr.indexOf(b.dataset.v), 1); render();
+  });
+  const ca = document.getElementById("clearAll");
+  if (ca) ca.onclick = () => { S.q = ""; S.f = { vols: [], seasons: [] }; render(); };
   $app.querySelectorAll(".card").forEach(b => b.onclick = () => openAroma(b.dataset.id));
-  const pill = document.getElementById("pill");
-  if (pill) pill.onclick = () => { S.view = "cart"; render(); };
   setBack(false);
   cartButton();
 }
@@ -206,38 +330,39 @@ function renderList() {
 function openAroma(id) {
   S.current = id; S.view = "detail";
   const a = byId(id);
-  S.ml = Object.keys(a.prices).find(ml => ml === "5") || Object.keys(a.prices)[0];
+  const pref = S.f.vols.find(ml => a.prices[ml]);
+  S.ml = pref || (a.prices["5"] ? "5" : Object.keys(a.prices)[0]);
   haptic(); render(); window.scrollTo(0, 0);
 }
 
 function renderDetail() {
   const a = byId(S.current);
-  const decants = Object.entries(a.prices).filter(([ml]) => ml !== FULL());
   const full = a.prices[FULL()];
-  const bigVols = decants.some(([ml]) => +ml >= 20);
+  const bigVols = decants(a).some(ml => +ml >= 20);
+  const seasons = (a.seasons || []).map(s => { const x = SEASONS.find(z => z[0] === s); return `${x ? x[1] : ""} ${cap(s)}`; }).join(" · ");
   $app.innerHTML = `
-    <div class="detail">
-      <div class="hero">${a.image ? `<img src="${a.image}" alt="">` : ""}</div>
-      <div class="body">
-        <div class="brand">${esc(a.brand)}</div>
-        <h2 class="serif">${esc(a.name)}</h2>
-        <div class="meta">${esc(a.family)} · ${esc(a.gender)}</div>
-        <p class="desc">${esc(a.description)}</p>
-        <div class="notes"><span>Ноти</span>${esc(a.notes)}</div>
-        ${a.in_stock ? `
-          <div class="sec">Оберіть обʼєм</div>
-          <div class="vols">
-            ${decants.map(([ml, p]) => `
-              <button class="vol ${S.ml === ml ? "on" : ""}" data-ml="${ml}">
-                <div class="ml">${ml} мл</div><div class="pr">${money(p)}</div></button>`).join("")}
-            ${full ? `<button class="vol full ${S.ml === FULL() ? "on" : ""}" data-ml="${FULL()}">
-                <div class="ml">Повний флакон ${FULL()} мл</div><div class="pr">${money(full)}</div></button>` : ""}
-          </div>
-          ${bigVols ? `<div class="hint">У ціну 20 і 30 мл уже входить знижка 5% і 10%</div>` : ""}`
-        : `<div class="oos">Зараз немає в наявності</div>`}
-        <div class="orig">Як завжди оригінал 💯</div>
-      </div>
+    ${topBar(true)}
+    <div class="hero">${a.image ? `<img src="${a.image}" alt="">` : ""}${a.is_new ? `<span class="new">Новинка</span>` : ""}</div>
+    <div class="dbody">
+      <div class="brand">${esc(a.brand)}</div>
+      <h2 class="serif">${esc(a.name)}</h2>
+      <div class="meta">${esc(cap(a.family))} · ${esc(a.gender)}${seasons ? `<br>${seasons}` : ""}</div>
+      <p class="desc">${esc(a.description)}</p>
+      <div class="notes"><span class="brand">Ноти</span>${esc(a.notes)}</div>
+      ${a.in_stock ? `
+        <div class="sec">Оберіть обʼєм</div>
+        <div class="vols">
+          ${decants(a).map(ml => `
+            <button class="vol ${S.ml === ml ? "on" : ""}" data-ml="${ml}">
+              <div class="ml">${ml} мл</div><div class="pr">${money(a.prices[ml])}</div></button>`).join("")}
+          ${full ? `<button class="vol full ${S.ml === FULL() ? "on" : ""}" data-ml="${FULL()}">
+              <div class="ml">Повний флакон ${FULL()} мл</div><div class="pr">${money(full)}</div></button>` : ""}
+        </div>
+        ${bigVols ? `<div class="hint">У ціну 20 і 30 мл уже входить знижка 5% і 10%</div>` : ""}`
+      : `<div class="oosnote">Зараз немає в наявності</div>`}
+      <div class="orig">Як завжди оригінал 💯</div>
     </div>`;
+  bindTop();
   $app.querySelectorAll(".vol").forEach(b => b.onclick = () => { S.ml = b.dataset.ml; haptic("soft"); render(); });
   setBack(true);
   if (a.in_stock) {
@@ -253,16 +378,17 @@ function renderDetail() {
 function renderCart() {
   const entries = Object.entries(S.cart).filter(([k]) => itemOf(k));
   const { total } = cartStats();
-  $app.innerHTML = `<div class="cart"><h2 class="serif">Кошик</h2>
+  $app.innerHTML = `${topBar(true)}<div class="title serif" style="margin-top:6px">Кошик</div><div class="cart" style="margin-top:14px">
     ${entries.length ? entries.map(([k, q]) => { const it = itemOf(k); return `
       <div class="row">
-        ${it.a.image ? `<img src="${it.a.image}" alt="">` : ""}
-        <div class="t"><div class="n">${esc(it.a.brand)} — ${esc(it.a.name)}</div>
+        <div class="ph">${it.a.image ? `<img src="${it.a.image}" alt="">` : ""}</div>
+        <div class="t"><div class="brand">${esc(it.a.brand)}</div><div class="n">${esc(it.a.name)}</div>
           <div class="s">${it.label} · ${money(it.price)}</div></div>
         <div class="qty"><button data-k="${k}" data-d="-1">−</button><b>${q}</b><button data-k="${k}" data-d="1">+</button></div>
       </div>`; }).join("") + `<div class="total"><span>Разом</span><span>${money(total)}</span></div>`
-    : `<div class="empty">Кошик порожній 🫙<br>Оберіть аромат у каталозі</div>`}
+    : `<div class="empty">Кошик порожній<br>Оберіть аромат у колекції</div>`}
   </div>`;
+  bindTop();
   $app.querySelectorAll(".qty button").forEach(b => b.onclick = () => {
     const k = b.dataset.k; S.cart[k] = (S.cart[k] || 0) + +b.dataset.d;
     if (S.cart[k] <= 0) delete S.cart[k];
