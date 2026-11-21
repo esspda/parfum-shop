@@ -102,7 +102,8 @@
 
 <script>
 const tg = window.Telegram && window.Telegram.WebApp;
-const inTg = !!(tg && tg.initData);
+// При запуску з кнопки клавіатури initData порожній, тому перевіряємо платформу
+const inTg = !!(tg && tg.platform && tg.platform !== "unknown");
 const S = { catalog: null, cart: {}, view: "list", current: null, ml: null, filter: "all" };
 const $app = document.getElementById("app");
 
