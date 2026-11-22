@@ -23,6 +23,7 @@
     "30": 3550
    },
    "full_ml": null,
+   "discounts": {},
    "is_new": false,
    "in_stock": true,
    "image": "images/naxos_bottle.jpg"
@@ -49,6 +50,7 @@
     "100": 3850
    },
    "full_ml": 100,
+   "discounts": {},
    "is_new": true,
    "in_stock": true,
    "image": "images/najim_bottle.jpg"
@@ -76,6 +78,7 @@
     "30": 3650
    },
    "full_ml": null,
+   "discounts": {},
    "is_new": false,
    "in_stock": true,
    "image": "images/layton_bottle.jpg"
@@ -100,6 +103,7 @@
     "100": 10000
    },
    "full_ml": 100,
+   "discounts": {},
    "is_new": false,
    "in_stock": true,
    "image": "images/oudwood_1795339966.jpg"
@@ -124,6 +128,7 @@
     "30": 6250
    },
    "full_ml": null,
+   "discounts": {},
    "is_new": false,
    "in_stock": true,
    "image": "images/ombrenomade_1795340422.jpg"
