@@ -410,7 +410,7 @@ function renderCards(enter = false) {
         <span class="tagline">${esc(a.tagline || a.notes || "")}</span>
         <span class="meta"><span class="seasons">${seasonIcons(a)}</span><span class="price">${cardPrice(a)}</span></span>
       </span>
-      ${a.is_new && a.in_stock ? `<span class="new">Нове</span>` : ""}
+      ${a.is_new && a.in_stock ? `<span class="new">Новинка</span>` : ""}
     </button>`).join("")
     : `<div class="empty">Нічого не знайшли.<br><button class="linkbtn" id="clearAll">Скинути пошук і фільтри</button></div>`;
   box.querySelectorAll(".card").forEach(c => c.onclick = () => { haptic.tap(); openDetail(c.dataset.id, c); });
