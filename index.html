@@ -152,8 +152,11 @@ const saveCart = () => { try { sessionStorage.setItem("cart", JSON.stringify(S.c
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const money = n => n.toLocaleString("uk-UA").replace(/[\s,]/g, " ") + " грн";
 const byId = id => S.catalog.aromas.find(a => a.id === id);
-const FULL = () => String(S.catalog.full_bottle_ml);
-const volName = ml => ml === FULL() ? `Флакон ${ml} мл` : `${ml} мл`;
+// full_ml — обʼєм повного флакона цього аромату (або null). У фільтрі повний флакон = значення "full".
+const isFull = (a, ml) => !!a.full_ml && String(a.full_ml) === String(ml);
+const volName = (ml, a) => ml === "full" ? "Повний флакон" : (a && isFull(a, ml) ? `Флакон ${ml} мл` : `${ml} мл`);
+const volKey = (a, v) => v === "full" ? (a.full_ml && a.prices[a.full_ml] ? String(a.full_ml) : null)
+                                      : (a.prices[v] && !isFull(a, v) ? v : null);
 const haptic = t => { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(t || "light"); } catch (e) {} };
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -168,7 +171,7 @@ function itemOf(key) {               // key: a-<id>-<ml>
   const [, id, ml] = key.split("-");
   const a = byId(id);
   if (!a || !a.prices[ml]) return null;
-  return { a, ml, price: a.prices[ml], label: volName(ml) };
+  return { a, ml, price: a.prices[ml], label: volName(ml, a) };
 }
 function cartStats() {
   let count = 0, total = 0;
@@ -224,17 +227,19 @@ function cartButton() {
 }
 
 /* ---------- фільтри ---------- */
-const decants = a => Object.keys(a.prices).filter(ml => ml !== FULL());
-const minPrice = a => Math.min(...decants(a).map(ml => a.prices[ml]));
+const decants = a => Object.keys(a.prices).filter(ml => !isFull(a, ml)).sort((x, y) => +x - +y);
+const minPrice = a => { const d = decants(a); return Math.min(...(d.length ? d : Object.keys(a.prices)).map(ml => a.prices[ml])); };
 function allVols() {
   const set = new Set();
-  S.catalog.aromas.forEach(a => Object.keys(a.prices).forEach(ml => set.add(ml)));
-  return [...set].sort((x, y) => +x - +y);
+  S.catalog.aromas.forEach(a => decants(a).forEach(ml => set.add(ml)));
+  const vols = [...set].sort((x, y) => +x - +y);
+  if (S.catalog.aromas.some(a => a.full_ml)) vols.push("full");
+  return vols;
 }
 function matches(a, f) {
   const q = S.q.trim().toLowerCase();
   if (q && !`${a.brand} ${a.name} ${a.notes} ${a.tagline} ${a.family}`.toLowerCase().includes(q)) return false;
-  if (f.vols.length && !f.vols.some(ml => a.prices[ml])) return false;
+  if (f.vols.length && !f.vols.some(v => volKey(a, v))) return false;
   if (f.seasons.length && !f.seasons.some(s => (a.seasons || []).includes(s))) return false;
   return true;
 }
@@ -278,8 +283,8 @@ function renderSheet() {
 
 /* ---------- екрани ---------- */
 function cardPrice(a) {
-  const own = S.f.vols.filter(ml => a.prices[ml]);
-  if (own.length === 1) return `${volName(own[0])} · ${money(a.prices[own[0]])}`;
+  const own = S.f.vols.map(v => volKey(a, v)).filter(Boolean);
+  if (own.length === 1) return `${volName(own[0], a)} · ${money(a.prices[own[0]])}`;
   return `від ${money(minPrice(a))}`;
 }
 
@@ -330,14 +335,15 @@ function renderList() {
 function openAroma(id) {
   S.current = id; S.view = "detail";
   const a = byId(id);
-  const pref = S.f.vols.find(ml => a.prices[ml]);
+  const pref = S.f.vols.map(v => volKey(a, v)).find(Boolean);
   S.ml = pref || (a.prices["5"] ? "5" : Object.keys(a.prices)[0]);
   haptic(); render(); window.scrollTo(0, 0);
 }
 
 function renderDetail() {
   const a = byId(S.current);
-  const full = a.prices[FULL()];
+  const fullMl = a.full_ml ? String(a.full_ml) : null;
+  const full = fullMl ? a.prices[fullMl] : null;
   const bigVols = decants(a).some(ml => +ml >= 20);
   const seasons = (a.seasons || []).map(s => { const x = SEASONS.find(z => z[0] === s); return `${x ? x[1] : ""} ${cap(s)}`; }).join(" · ");
   $app.innerHTML = `
@@ -355,8 +361,8 @@ function renderDetail() {
           ${decants(a).map(ml => `
             <button class="vol ${S.ml === ml ? "on" : ""}" data-ml="${ml}">
               <div class="ml">${ml} мл</div><div class="pr">${money(a.prices[ml])}</div></button>`).join("")}
-          ${full ? `<button class="vol full ${S.ml === FULL() ? "on" : ""}" data-ml="${FULL()}">
-              <div class="ml">Повний флакон ${FULL()} мл</div><div class="pr">${money(full)}</div></button>` : ""}
+          ${full ? `<button class="vol full ${S.ml === fullMl ? "on" : ""}" data-ml="${fullMl}">
+              <div class="ml">Повний флакон ${fullMl} мл</div><div class="pr">${money(full)}</div></button>` : ""}
         </div>
         ${bigVols ? `<div class="hint">У ціну 20 і 30 мл уже входить знижка 5% і 10%</div>` : ""}`
       : `<div class="oosnote">Зараз немає в наявності</div>`}
@@ -366,7 +372,7 @@ function renderDetail() {
   $app.querySelectorAll(".vol").forEach(b => b.onclick = () => { S.ml = b.dataset.ml; haptic("soft"); render(); });
   setBack(true);
   if (a.in_stock) {
-    setMain(`Додати ${S.ml === FULL() ? "флакон" : S.ml + " мл"} · ${money(a.prices[S.ml])}`, () => {
+    setMain(`Додати ${isFull(a, S.ml) ? "флакон" : S.ml + " мл"} · ${money(a.prices[S.ml])}`, () => {
       const key = `a-${a.id}-${S.ml}`;
       S.cart[key] = (S.cart[key] || 0) + 1; saveCart();
       haptic("medium"); toast("Додано в кошик ✓");
@@ -408,7 +414,7 @@ function render() {
   ({ list: renderList, detail: renderDetail, cart: renderCart })[S.view]();
 }
 
-fetch("catalog.json", { cache: "no-store" })
+fetch("catalog.json?t=" + Date.now(), { cache: "no-store" })  // ?t= обходить кеш GitHub Pages
   .then(r => r.json())
   .then(data => { S.catalog = data; render(); })
   .catch(() => { $app.innerHTML = `<div class="empty">Не вдалося завантажити каталог</div>`; });
