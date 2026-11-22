@@ -101,6 +101,15 @@
   .stage { position: relative; margin: 6px auto 0; width: min(calc(100% - 72px), 300px); aspect-ratio: 92 / 118;
     border-radius: 28px; background: var(--ivory); overflow: hidden; box-shadow: inset 0 0 70px rgba(7, 11, 24, .14); }
   .stage img { padding: 7%; }
+  /* галерея: фото гортаються пальцем вбік, нативний scroll-snap — плавно й без бібліотек */
+  .slides { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+  .slides::-webkit-scrollbar { display: none; }
+  .slide { flex: 0 0 100%; height: 100%; scroll-snap-align: center; scroll-snap-stop: always; }
+  .dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; height: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 3px; background: rgba(238, 240, 246, .25);
+    transition: transform 200ms var(--ease-out), background-color 200ms ease; }
+  .dot.on { background: var(--champagne); transform: scale(1.35); }
   .detail { padding: 22px 20px 0; }
   .detail .support { opacity: 0; transform: translateY(10px);
     transition: opacity 300ms var(--ease-out), transform 420ms var(--ease-out); }
@@ -258,6 +267,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const money = n => n.toLocaleString("uk-UA").replace(/[\s,]/g, " ") + " грн";
 const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 const byId = id => S.catalog.aromas.find(a => a.id === id);
+const photosOf = a => (a.images && a.images.length ? a.images : a.image ? [a.image] : []);
 const haptic = {
   tap: () => { try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {} },
   select: () => { try { tg.HapticFeedback.selectionChanged(); } catch (e) {} },
@@ -435,7 +445,10 @@ function detailHTML(a) {
       <div class="logo">${esc(S.catalog.shop_name || "Kiorchik Aroma")}</div>
       <button class="bag press" data-bag aria-label="Кошик"></button>
     </header>
-    <div class="stage" id="stage">${a.image ? `<img src="${a.image}" alt="${esc(a.brand + " " + a.name)}">` : ""}</div>
+    <div class="stage" id="stage">${photosOf(a).length > 1
+      ? `<div class="slides" id="slides">${photosOf(a).map((src, i) => `<div class="slide"><img src="${src}" alt="${esc(a.brand + " " + a.name)}, фото ${i + 1}" ${i ? 'loading="lazy"' : ""}></div>`).join("")}</div>`
+      : photosOf(a).length ? `<img src="${photosOf(a)[0]}" alt="${esc(a.brand + " " + a.name)}">` : ""}</div>
+    ${photosOf(a).length > 1 ? `<div class="dots" id="dots">${photosOf(a).map((_, i) => `<span class="dot ${i ? "" : "on"}"></span>`).join("")}</div>` : ""}
     <div class="detail">
       <div class="support">
         <div class="brand">${esc(a.brand)}</div>
@@ -471,6 +484,18 @@ function bindDetail(a) {
   });
   body.querySelectorAll("[data-bag]").forEach(b => b.onclick = () => openSheet("cart"));
   const bd = $("backDetail"); if (bd) bd.onclick = goBack;
+  const slides = $("slides");
+  S.slide = 0;
+  if (slides) {
+    const dots = [...$("dots").children];
+    slides.addEventListener("scroll", () => {
+      const i = Math.round(slides.scrollLeft / slides.clientWidth);
+      if (i === S.slide) return;
+      S.slide = i; haptic.select();
+      dots.forEach((d, k) => d.classList.toggle("on", k === i));
+    }, { passive: true });
+    dots.forEach((d, k) => d.onclick = () => slides.scrollTo({ left: k * slides.clientWidth, behavior: reduce ? "auto" : "smooth" }));
+  }
 }
 
 function rectOf(el) { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; }
@@ -505,11 +530,12 @@ function openDetail(id, cardEl) {
   requestAnimationFrame(() => setTimeout(() => layer.classList.add("shown"), 60));  // текст — на такт пізніше
   anim.onfinish = () => { stage.style.visibility = ""; tile.style.visibility = ""; fly.remove(); busy = false; };
 }
-function makeFlyer(a, r, radius) {
+function makeFlyer(a, r, radius, src) {
   const fly = document.createElement("div");
   fly.className = "flyer";
   fly.style.cssText = `left:0;top:0;width:${r.w}px;height:${r.h}px;border-radius:${radius}px;transform:translate(${r.x}px,${r.y}px)`;
-  fly.innerHTML = a.image ? `<img src="${a.image}" alt="">` : "";
+  src = src || a.image;
+  fly.innerHTML = src ? `<img src="${src}" alt="">` : "";
   document.body.appendChild(fly);
   return fly;
 }
@@ -533,7 +559,7 @@ function closeDetail() {
   }
   // той самий шлях назад: сцена стискається в плитку картки
   const from = rectOf(stage), to = rectOf(back);
-  const fly = makeFlyer(byId(id), from, 28);
+  const fly = makeFlyer(byId(id), from, 28, photosOf(byId(id))[S.slide || 0]);
   stage.style.visibility = "hidden"; back.style.visibility = "hidden";
   layer.classList.add("closing");
   busy = true;
@@ -565,7 +591,7 @@ function addToCart() {
   const size = 64;
   const sx = from.x + from.w / 2 - size / 2, sy = from.y + from.h / 2 - size * 0.64;
   const tx = to.x + to.w / 2 - size / 2, ty = to.y + to.h / 2 - size * 0.64;
-  const fly = makeFlyer(a, { x: sx, y: sy, w: size, h: size * 1.28 }, 12);
+  const fly = makeFlyer(a, { x: sx, y: sy, w: size, h: size * 1.28 }, 12, photosOf(a)[S.slide || 0]);
   fly.style.transformOrigin = "50% 50%";
   const mx = (sx + tx) / 2, my = Math.min(sy, ty) - 40;   // вершина дуги
   fly.animate([
@@ -701,7 +727,8 @@ async function loadCatalog() {
       if (r.ok) {
         const data = await r.json();
         const raw = `https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/main/`;
-        data.aromas.forEach(a => { if (a.image && !/^https?:/.test(a.image)) a.image = raw + a.image; });
+        const abs = p => (p && !/^https?:/.test(p) ? raw + p : p);
+        data.aromas.forEach(a => { a.image = abs(a.image); a.images = (a.images || []).map(abs); });
         return data;
       }
     } catch (e) { /* падаємо на звичайний файл */ }
