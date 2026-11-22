@@ -414,8 +414,34 @@ function render() {
   ({ list: renderList, detail: renderDetail, cart: renderCart })[S.view]();
 }
 
-fetch("catalog.json?t=" + Date.now(), { cache: "no-store" })  // ?t= обходить кеш GitHub Pages
-  .then(r => r.json())
+/* Каталог. GitHub Pages кешує файли до 10 хв, тому на *.github.io спершу беремо свіжий
+   catalog.json напряму з репозиторію через GitHub API (затримка ~1 хв), а фото — з raw.githubusercontent.
+   Якщо API недоступний (ліміт 60 запитів/год на IP) — звичайний catalog.json із сайту. */
+function repoFromLocation() {
+  const host = location.hostname;
+  if (!host.endsWith(".github.io")) return null;
+  const owner = host.split(".")[0];
+  const repo = location.pathname.split("/").filter(Boolean)[0] || `${owner}.github.io`;
+  return { owner, repo };
+}
+async function loadCatalog() {
+  const gh = repoFromLocation();
+  if (gh) {
+    try {
+      const r = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/catalog.json?ref=main&t=${Date.now()}`,
+                            { headers: { Accept: "application/vnd.github.raw+json" }, cache: "no-store" });
+      if (r.ok) {
+        const data = await r.json();
+        const raw = `https://raw.githubusercontent.com/${gh.owner}/${gh.repo}/main/`;
+        data.aromas.forEach(a => { if (a.image && !/^https?:/.test(a.image)) a.image = raw + a.image; });
+        return data;
+      }
+    } catch (e) { /* падаємо на звичайний файл */ }
+  }
+  const r = await fetch("catalog.json?t=" + Date.now(), { cache: "no-store" });
+  return r.json();
+}
+loadCatalog()
   .then(data => { S.catalog = data; render(); })
   .catch(() => { $app.innerHTML = `<div class="empty">Не вдалося завантажити каталог</div>`; });
 </script>
