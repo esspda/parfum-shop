@@ -2,175 +2,282 @@
 <html lang="uk">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Kiorchik Aroma</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a1222; --bg2: #0e1a30; --card1: #1d3156; --card2: #132341;
-    --line: rgba(201,169,110,.28); --gold: #c9a96e; --gold2: #e6cf9f;
-    --text: #f2ece0; --muted: #9fb0c8; --tile: #f3eee6; --danger: #e08a72;
+    --ink: #070B18; --sapphire: #0E1630; --raised: #142046;
+    --champagne: #D9C3A0; --frost: #EEF0F6; --mist: #8A93AD;
+    --hairline: rgba(217, 195, 160, .14); --edge: rgba(255, 255, 255, .055); --ivory: #E3DCCF;
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+    --ease-in-out: cubic-bezier(.77, 0, .175, 1);
+    --ease-drawer: cubic-bezier(.32, .72, 0, 1);
+    --display: "Unbounded", "Arial Black", sans-serif;
+    --text: "Onest", system-ui, -apple-system, sans-serif;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; background: var(--bg); color: var(--text);
-    font-family: "Manrope", system-ui, sans-serif; font-size: 15px; }
-  html, body { overflow-x: hidden; }
-  body { padding-bottom: 96px; min-height: 100vh;
-    background: radial-gradient(120% 60% at 50% 0%, #16284d 0%, var(--bg) 60%); background-attachment: fixed; }
-  .serif { font-family: "Cormorant Garamond", Georgia, serif; }
-  button { font-family: inherit; cursor: pointer; color: inherit; }
+  html, body { margin: 0; background: var(--ink); color: var(--frost); font: 400 15px/1.45 var(--text);
+    -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  body { min-height: 100vh; padding-bottom: calc(96px + var(--safe-bottom)); }
+  body.locked { overflow: hidden; }
+  /* одне глибоке світіння зверху — замість градієнтів на картках */
+  .glow { position: fixed; inset: -20vh -20vw auto; height: 70vh; pointer-events: none; z-index: 0;
+    background: radial-gradient(50% 50% at 50% 50%, rgba(28, 46, 104, .55), rgba(7, 11, 24, 0) 70%); }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--champagne); outline-offset: 2px; }
   svg { display: block; }
+  .press { transition: transform 160ms var(--ease-out); }
+  .press:active { transform: scale(.98); }
 
-  /* шапка */
-  .top { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 16px 14px 6px; }
-  .logo { text-align: center; font-size: 27px; font-style: italic; font-weight: 600; letter-spacing: 2px; color: var(--gold2); }
-  .iconbtn { width: 44px; height: 44px; border: 0; background: none; display: flex; align-items: center; justify-content: center; position: relative; color: var(--gold2); padding: 0; }
-  .dot { position: absolute; top: 5px; right: 4px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--gold); color: #0a1222;
-    font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+  /* ---------- шапка ---------- */
+  .top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 10px; background: rgba(7, 11, 24, .72); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  .low .top { background: var(--ink); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .logo { font: 400 17px/1 var(--display); letter-spacing: .01em; }
+  .bag { position: relative; width: 44px; height: 44px; display: grid; place-items: center; margin-right: -10px; color: var(--frost); }
+  .bag .count { position: absolute; top: 6px; right: 4px; min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px;
+    background: var(--champagne); color: var(--ink); font: 600 11px/17px var(--text); text-align: center; }
+  .back { width: 44px; height: 44px; display: grid; place-items: center; margin-left: -12px; color: var(--frost); }
 
-  /* пошук + фільтри */
-  .searchrow { display: flex; gap: 10px; padding: 10px 16px 4px; }
-  .search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 14px; padding: 0 14px; height: 48px; background: rgba(255,255,255,.02); }
-  .search input { flex: 1; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 15px; min-width: 0; }
-  .search input::placeholder { color: var(--muted); }
-  .filterbtn { flex: none; height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.02);
-    display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; position: relative; color: var(--gold2); }
-  .filterbtn.on { background: var(--gold); color: #0a1222; border-color: var(--gold); }
+  main { position: relative; z-index: 1; }
+  .promise { padding: 0 16px; margin: 2px 0 16px; color: var(--mist); font-size: 13px; }
 
-  .title { text-align: center; font-size: 26px; font-weight: 500; margin: 18px 0 4px; }
-  .sub { text-align: center; color: var(--muted); font-size: 12.5px; margin-bottom: 12px; }
-  .active { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; padding: 0 16px 8px; }
-  .tag { border: 1px solid var(--line); background: none; color: var(--gold2); border-radius: 999px; padding: 5px 10px 5px 12px; font-size: 12.5px; }
-  .tag span { opacity: .6; margin-left: 4px; }
+  /* ---------- пошук і фільтри ---------- */
+  .tools { display: flex; gap: 8px; padding: 0 16px 14px; }
+  .search { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px;
+    background: var(--raised); border-radius: 14px; box-shadow: inset 0 1px 0 var(--edge); }
+  .search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--frost); font: 400 15px var(--text); }
+  .search input::placeholder { color: var(--mist); }
+  .filterbtn { flex: none; height: 46px; padding: 0 14px; border-radius: 14px; display: flex; align-items: center; gap: 8px;
+    background: var(--raised); box-shadow: inset 0 1px 0 var(--edge); font-weight: 500; font-size: 14px;
+    transition: background-color 150ms ease, color 150ms ease, transform 160ms var(--ease-out); }
+  .filterbtn.on { background: var(--champagne); color: var(--ink); box-shadow: none; }
+  .active { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+  .tag { height: 30px; padding: 0 10px 0 12px; border-radius: 15px; border: 1px solid var(--hairline); color: var(--champagne);
+    font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
 
-  /* картки */
-  .list { padding: 6px 16px; display: flex; flex-direction: column; gap: 14px; }
-  .card { display: flex; gap: 14px; align-items: stretch; text-align: left; border: 1px solid rgba(255,255,255,.06);
-    background: linear-gradient(135deg, var(--card1), var(--card2)); border-radius: 20px; padding: 12px; position: relative;
-    box-shadow: 0 10px 24px rgba(0,0,0,.25); }
-  .card .ph { width: 92px; height: 118px; flex: none; border-radius: 14px; background: radial-gradient(circle at 50% 40%, #fffdf8, var(--tile));
-    display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .card .ph img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; padding: 6px; }
-  .card .info { flex: 1; display: flex; flex-direction: column; min-width: 0; padding: 4px 0; }
-  .brand { font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
-  .card .name { font-size: 21px; line-height: 1.08; text-transform: uppercase; letter-spacing: .6px; margin: 3px 0 5px; font-weight: 600; }
-  .card .tl { color: var(--muted); font-size: 13px; line-height: 1.35; }
-  .card .bottom { margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: space-between; align-items: flex-end; padding-top: 8px; }
-  .season { font-size: 12px; color: var(--muted); white-space: nowrap; }
-  .price { font-weight: 700; font-size: 15.5px; color: var(--gold2); white-space: nowrap; margin-left: auto; }
-  .new { position: absolute; top: 10px; right: 12px; font-size: 9.5px; letter-spacing: 1px; font-weight: 800; text-transform: uppercase;
-    background: var(--gold); color: #0a1222; padding: 4px 8px; border-radius: 999px; }
-  .card.oos { opacity: .55; }
-  .empty { text-align: center; color: var(--muted); padding: 50px 24px; line-height: 1.6; }
-  .linkbtn { border: 0; background: none; color: var(--gold); font-weight: 700; font-size: 14px; margin-top: 8px; }
+  /* ---------- картки ---------- */
+  .cards { display: flex; flex-direction: column; gap: 10px; padding: 0 12px; }
+  .card { position: relative; display: flex; gap: 14px; width: 100%; text-align: left; padding: 8px; border-radius: 22px;
+    background: var(--sapphire); box-shadow: inset 0 1px 0 var(--edge); }
+  .tile { flex: none; width: 92px; aspect-ratio: 92 / 118; border-radius: 14px; background: var(--ivory); overflow: hidden;
+    display: grid; place-items: center; box-shadow: inset 0 0 22px rgba(7, 11, 24, .12); }
+  .tile img, .stage img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+  .tile img { padding: 6px; }
+  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 6px 6px 4px 0; }
+  .brand { font-size: 13px; color: var(--mist); }
+  .name { font: 400 18px/1.15 var(--display); letter-spacing: -.005em; margin: 3px 0 6px; overflow-wrap: anywhere; }
+  .tagline { font-size: 13px; color: var(--mist); line-height: 1.35; }
+  .meta { margin-top: auto; padding-top: 10px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .seasons { display: flex; gap: 6px; color: var(--mist); }
+  .price { font-weight: 600; font-size: 15px; color: var(--champagne); white-space: nowrap; }
+  .new { position: absolute; top: 14px; right: 14px; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--champagne); }
+  .new::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--champagne); }
+  .card.out .tile { opacity: .45; }
+  .card.out .price { color: var(--mist); font-weight: 500; }
+  .empty { padding: 48px 24px; text-align: center; color: var(--mist); }
+  .linkbtn { color: var(--champagne); font-weight: 500; margin-top: 8px; }
 
-  /* фільтри (нижня шторка) */
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20; }
-  .overlay.show { opacity: 1; pointer-events: auto; }
-  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg2); border-radius: 24px 24px 0 0; padding: 10px 18px 22px;
-    transform: translateY(105%); transition: transform .25s ease, visibility .25s; visibility: hidden; z-index: 21; border-top: 1px solid var(--line); max-height: 85vh; overflow: auto; }
-  .sheet.show { transform: translateY(0); visibility: visible; }
-  .grab { width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); margin: 0 auto 12px; }
-  .sheet h3 { margin: 0 0 4px; font-size: 26px; font-weight: 500; text-align: center; }
-  .sec { margin: 18px 0 10px; font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip { border: 1px solid var(--line); background: none; padding: 9px 14px; border-radius: 12px; font-size: 14px; font-weight: 600; }
-  .chip.on { background: var(--gold); border-color: var(--gold); color: #0a1222; }
-  .sheetbtns { display: flex; gap: 10px; margin-top: 24px; }
-  .sheetbtns button { flex: 1; height: 50px; border-radius: 14px; font-weight: 700; font-size: 15px; }
-  .ghost { border: 1px solid var(--line); background: none; color: var(--gold2); }
-  .solid { border: 0; background: var(--gold); color: #0a1222; }
+  /* вхід вітрини — лише перший раз за сесію */
+  .enter .card { animation: rise 420ms var(--ease-out) both; animation-delay: var(--d, 0ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
 
-  /* сторінка аромату */
-  .hero { margin: 8px 16px 0; border-radius: 24px; height: 340px; background: radial-gradient(circle at 50% 45%, #fffdf8 0%, var(--tile) 70%);
-    display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-  .hero img { height: 88%; object-fit: contain; mix-blend-mode: multiply; }
-  .dbody { padding: 18px 18px 0; }
-  .dbody h2 { font-size: 36px; line-height: 1.02; margin: 4px 0 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
-  .meta { color: var(--muted); font-size: 13px; line-height: 1.6; }
-  .desc { line-height: 1.6; margin: 14px 0; color: #dcd5c8; }
-  .notes { border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; font-size: 14px; line-height: 1.5; background: rgba(201,169,110,.06); }
-  .notes .brand { display: block; margin-bottom: 4px; }
+  /* ---------- сторінка аромату (шар поверх списку) ---------- */
+  .layer { position: fixed; inset: 0; z-index: 10; overflow-y: auto; overscroll-behavior: contain; visibility: hidden;
+    padding-bottom: calc(110px + var(--safe-bottom)); }
+  .layer.open { visibility: visible; }
+  .layer-bg { position: fixed; inset: 0; background: var(--ink); opacity: 0; transition: opacity 260ms ease; }
+  .layer.open .layer-bg { opacity: 1; }
+  .layer-body { transition: opacity 200ms ease; }
+  /* закриття: шар тане, під ним уже видно список, і флакон сідає у свою картку */
+  .layer.closing .layer-bg, .layer.closing .layer-body { opacity: 0; }
+  .layer .top { background: rgba(7, 11, 24, .78); }
+  .layer-body { position: relative; }
+  .stage { position: relative; margin: 6px auto 0; width: min(calc(100% - 72px), 300px); aspect-ratio: 92 / 118;
+    border-radius: 28px; background: var(--ivory); overflow: hidden; box-shadow: inset 0 0 70px rgba(7, 11, 24, .14); }
+  .stage img { padding: 7%; }
+  .detail { padding: 22px 20px 0; }
+  .detail .support { opacity: 0; transform: translateY(10px);
+    transition: opacity 300ms var(--ease-out), transform 420ms var(--ease-out); }
+  .layer.shown .detail .support { opacity: 1; transform: none; }
+  .layer.shown .detail .support:nth-child(2) { transition-delay: 40ms; }
+  .layer.shown .detail .support:nth-child(n+3) { transition-delay: 70ms; }
+  .detail .brand { font-size: 14px; }
+  .detail h1 { font: 300 30px/1.05 var(--display); letter-spacing: -.01em; margin: 6px 0 10px; overflow-wrap: anywhere; }
+  .facts { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--mist); font-size: 14px; }
+  .desc { margin: 18px 0 0; color: #C9CEDC; line-height: 1.6; max-width: 62ch; }
+  .notes { margin: 16px 0 0; font-size: 14px; color: var(--mist); }
+  .notes b { color: var(--frost); font-weight: 500; }
+  .h { margin: 26px 0 10px; font: 400 15px var(--display); }
   .vols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .vol { border: 1px solid var(--line); background: rgba(255,255,255,.02); border-radius: 14px; padding: 11px 6px; text-align: center; }
-  .vol .ml { font-weight: 700; font-size: 15px; }
-  .vol .pr { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .vol.on { border-color: var(--gold); background: rgba(201,169,110,.16); }
-  .vol.on .pr { color: var(--gold2); font-weight: 600; }
-  .vol.full { grid-column: span 3; display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; }
-  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
-  .orig { margin: 20px 0 6px; font-size: 13px; color: var(--muted); text-align: center; }
-  .oosnote { color: var(--danger); font-weight: 600; margin-top: 14px; }
+  .vol { height: 64px; border-radius: 16px; background: var(--raised); box-shadow: inset 0 1px 0 var(--edge);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    transition: background-color 150ms ease, color 150ms ease, transform 160ms var(--ease-out); }
+  .vol .ml { font-weight: 600; font-size: 15px; }
+  .vol .pr { font-size: 12px; color: var(--mist); transition: color 150ms ease; }
+  .vol.on { background: var(--champagne); color: var(--ink); box-shadow: none; }
+  .vol.on .pr { color: rgba(7, 11, 24, .7); }
+  .vol.full { grid-column: span 3; flex-direction: row; justify-content: space-between; padding: 0 18px; }
+  .hint { margin-top: 10px; font-size: 12.5px; color: var(--mist); }
+  .orig { margin-top: 22px; font-size: 13px; color: var(--mist); }
+  .oos { margin-top: 22px; color: #E8A598; font-weight: 500; }
 
-  /* кошик */
-  .cart { padding: 0 16px; }
-  .row { display: flex; gap: 12px; align-items: center; background: linear-gradient(135deg, var(--card1), var(--card2));
-    border-radius: 18px; padding: 10px; margin-bottom: 10px; }
-  .row .ph { width: 54px; height: 66px; border-radius: 10px; background: var(--tile); flex: none; display: flex; align-items: center; justify-content: center; }
-  .row .ph img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; padding: 4px; }
+  /* літаючі копії */
+  .flyer { position: fixed; z-index: 30; pointer-events: none; background: var(--ivory); overflow: hidden; transform-origin: 0 0;
+    will-change: transform; box-shadow: inset 0 0 70px rgba(7, 11, 24, .14); }
+  .flyer img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; padding: 7%; }
+
+  /* ---------- шторки ---------- */
+  .scrim { position: fixed; inset: 0; z-index: 20; background: rgba(2, 4, 10, .6); opacity: 0; pointer-events: none;
+    transition: opacity 300ms ease; }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; max-height: 86vh; display: flex; flex-direction: column;
+    background: var(--sapphire); border-radius: 26px 26px 0 0; box-shadow: inset 0 1px 0 var(--edge);
+    transform: translateY(100%); visibility: hidden; transition: transform 300ms var(--ease-drawer), visibility 0s 300ms;
+    padding-bottom: calc(16px + var(--safe-bottom)); }
+  .sheet.show { transform: translateY(0); visibility: visible; transition: transform 460ms var(--ease-drawer), visibility 0s; }
+  .sheet.dragging { transition: none; }
+  .fb .sheet { padding-bottom: calc(82px + var(--safe-bottom)); }
+  .sheet-head { flex: none; padding: 10px 20px 6px; touch-action: none; cursor: grab; }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: rgba(238, 240, 246, .22); margin: 0 auto 14px; }
+  .sheet-head h2 { margin: 0; font: 400 22px/1.1 var(--display); }
+  .sheet-body { overflow-y: auto; padding: 6px 20px 4px; overscroll-behavior: contain; }
+  .sheet .h { margin-top: 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { height: 40px; padding: 0 14px; border-radius: 12px; background: var(--raised); box-shadow: inset 0 1px 0 var(--edge);
+    font-weight: 500; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;
+    transition: background-color 150ms ease, color 150ms ease, transform 160ms var(--ease-out); }
+  .chip.on { background: var(--champagne); color: var(--ink); box-shadow: none; }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .sheet-actions button { flex: 1; height: 50px; border-radius: 15px; font-weight: 600; }
+  .ghost { background: var(--raised); box-shadow: inset 0 1px 0 var(--edge); }
+  .solid { background: var(--champagne); color: var(--ink); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--hairline); }
+  .row:last-of-type { border-bottom: 0; }
+  .row .tile { width: 48px; border-radius: 10px; }
+  .row .tile img { padding: 3px; }
   .row .t { flex: 1; min-width: 0; }
-  .row .n { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .row .s { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
-  .qty { display: flex; align-items: center; gap: 8px; }
-  .qty button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: none; color: var(--gold2); font-size: 17px; line-height: 1; }
-  .qty b { min-width: 16px; text-align: center; }
-  .total { display: flex; justify-content: space-between; padding: 14px 4px; font-size: 17px; font-weight: 700; border-top: 1px dashed var(--line); margin-top: 6px; }
-  .total span:last-child { color: var(--gold2); }
+  .row .n { font: 400 14px/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .s { font-size: 13px; color: var(--mist); margin-top: 3px; }
+  .qty { display: flex; align-items: center; gap: 4px; }
+  .qty button { width: 32px; height: 32px; border-radius: 10px; background: var(--raised); font-size: 17px; line-height: 1;
+    transition: transform 160ms var(--ease-out); }
+  .qty b { min-width: 20px; text-align: center; font-weight: 600; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 0 4px; font-weight: 600; }
+  .total span:last-child { font: 400 20px var(--display); color: var(--champagne); }
 
-  #fallbackBtn { position: fixed; left: 14px; right: 14px; bottom: 14px; height: 54px; border: 0; border-radius: 16px; z-index: 10;
-    background: var(--gold); color: #0a1222; font-weight: 800; font-size: 15px; display: none; box-shadow: 0 10px 28px rgba(0,0,0,.4); }
-  .toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%) translateY(-90px); transition: transform .25s;
-    background: var(--gold); color: #0a1222; padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 700; z-index: 30; }
-  .toast.show { transform: translateX(-50%) translateY(0); }
+  #fallbackBtn { position: fixed; left: 12px; right: 12px; bottom: calc(12px + var(--safe-bottom)); z-index: 25; height: 54px;
+    border-radius: 16px; background: var(--champagne); color: var(--ink); font-weight: 600; font-size: 15px; display: none; }
+  .toast { position: fixed; left: 50%; top: 12px; z-index: 40; transform: translate(-50%, -140%); opacity: 0;
+    transition: transform 400ms var(--ease-out), opacity 300ms ease; background: var(--raised); color: var(--frost);
+    padding: 10px 16px; border-radius: 14px; font-size: 14px; box-shadow: inset 0 1px 0 var(--edge); }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .enter .card { animation: fade 300ms ease both; }
+    .detail .support { transform: none; }
+    .sheet, .sheet.show { transition: opacity 200ms ease, visibility 0s; transform: none; opacity: 0; }
+    .sheet.show { opacity: 1; }
+    .toast { transform: translate(-50%, 0); }
+  }
+  @keyframes fade { from { opacity: 0; } }
 </style>
 </head>
 <body>
-<main id="app"></main>
-<div class="overlay" id="overlay"></div>
-<div class="sheet" id="sheet"></div>
+<div class="glow"></div>
+<main id="app">
+  <header class="top">
+    <div class="logo" id="logo">Kiorchik Aroma</div>
+    <button class="bag press" data-bag aria-label="Кошик"></button>
+  </header>
+  <p class="promise">Оригінальні парфуми на розпив</p>
+  <div class="tools">
+    <label class="search"><span id="searchIcon"></span><input id="q" placeholder="Знайти аромат" autocomplete="off" enterkeyhint="search" aria-label="Пошук аромату"></label>
+    <button class="filterbtn press" id="filters"></button>
+  </div>
+  <div class="active" id="tags" hidden></div>
+  <div class="cards" id="cards"></div>
+</main>
+
+<section class="layer" id="layer" aria-hidden="true">
+  <div class="layer-bg"></div>
+  <div class="layer-body" id="layerBody"></div>
+</section>
+
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-head" id="sheetHead"><div class="grab"></div><h2 id="sheetTitle"></h2></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</section>
 <button id="fallbackBtn"></button>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
+/* ================= основа ================= */
 const tg = window.Telegram && window.Telegram.WebApp;
 // При запуску з кнопки клавіатури initData порожній, тому перевіряємо платформу
 const inTg = !!(tg && tg.platform && tg.platform !== "unknown");
-const S = { catalog: null, cart: {}, view: "list", current: null, ml: null, q: "",
-            f: { vols: [], seasons: [] }, draft: null };
-const $app = document.getElementById("app");
-const SEASONS = [["весна", "🌸"], ["літо", "☀️"], ["осінь", "🍂"], ["зима", "❄️"]];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+// клас продуктивності Android із User-Agent: «Telegram-Android/… (…; LOW)» — тоді спрощуємо анімації
+const low = /Telegram-Android\/[^(]*\([^)]*;\s*LOW\)/i.test(navigator.userAgent);
+if (low) document.documentElement.classList.add("low");
+const can = v => !!(tg && tg.isVersionAtLeast && tg.isVersionAtLeast(v));
+
+const S = { catalog: null, cart: {}, q: "", f: { vols: [], seasons: [] }, draft: null,
+            current: null, ml: null, sheet: null };
+const $ = id => document.getElementById(id);
+const SEASONS = ["весна", "літо", "осінь", "зима"];
 
 if (tg) {
   tg.ready(); tg.expand();
-  try { tg.setHeaderColor("#0a1222"); tg.setBackgroundColor("#0a1222"); } catch (e) {}
+  try { tg.setHeaderColor("#070B18"); tg.setBackgroundColor("#070B18"); } catch (e) {}
+  try { if (can("7.10")) tg.setBottomBarColor("#070B18"); } catch (e) {}
 }
 try { S.cart = JSON.parse(sessionStorage.getItem("cart") || "{}"); } catch (e) { S.cart = {}; }
 const saveCart = () => { try { sessionStorage.setItem("cart", JSON.stringify(S.cart)); } catch (e) {} };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const money = n => n.toLocaleString("uk-UA").replace(/[\s,]/g, " ") + " грн";
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 const byId = id => S.catalog.aromas.find(a => a.id === id);
-// full_ml — обʼєм повного флакона цього аромату (або null). У фільтрі повний флакон = значення "full".
+const haptic = {
+  tap: () => { try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {} },
+  select: () => { try { tg.HapticFeedback.selectionChanged(); } catch (e) {} },
+  success: () => { try { tg.HapticFeedback.notificationOccurred("success"); } catch (e) {} },
+};
+
+const ICON = {
+  bag: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5.5 8.5h13l-1 11.5h-11l-1-11.5Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/></svg>`,
+  back: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>`,
+  search: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A93AD" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>`,
+  filter: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg>`,
+  x: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
+  // тонкі сезонні знаки замість емодзі
+  "весна": `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12c0-4.2 3-6.8 7.5-6.8 0 4.2-3 6.8-7.5 6.8Z"/><path d="M12 15c0-3.4-2.4-5.6-6-5.6 0 3.4 2.4 5.6 6 5.6Z"/></svg>`,
+  "літо": `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>`,
+  "осінь": `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M19 5C10 5 5 9.5 5 15.5c0 1.6.5 3 1.2 3.9C14.5 19 19 14 19 5Z"/><path d="M5 20.5 13 12" stroke-linecap="round"/></svg>`,
+  "зима": `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.5 4.2 12 6.5l2.5-2.3M9.5 19.8 12 17.5l2.5 2.3"/></svg>`,
+};
+const seasonIcons = a => (a.seasons || []).map(s => `<span title="${cap(s)}">${ICON[s] || ""}</span>`).join("");
+
+/* ================= каталог і кошик ================= */
+// full_ml — обʼєм повного флакона цього аромату (або null). У фільтрі повний флакон = "full".
 const isFull = (a, ml) => !!a.full_ml && String(a.full_ml) === String(ml);
 const volName = (ml, a) => ml === "full" ? "Повний флакон" : (a && isFull(a, ml) ? `Флакон ${ml} мл` : `${ml} мл`);
 const volKey = (a, v) => v === "full" ? (a.full_ml && a.prices[a.full_ml] ? String(a.full_ml) : null)
                                       : (a.prices[v] && !isFull(a, v) ? v : null);
-const haptic = t => { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(t || "light"); } catch (e) {} };
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-
-const ICON = {
-  bag: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`,
-  back: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5l-7 7 7 7"/></svg>`,
-  search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`,
-  filter: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M7 12h10M10 18h4"/></svg>`,
-};
+const decants = a => Object.keys(a.prices).filter(ml => !isFull(a, ml)).sort((x, y) => +x - +y);
+const minPrice = a => { const d = decants(a); return Math.min(...(d.length ? d : Object.keys(a.prices)).map(ml => a.prices[ml])); };
 
 function itemOf(key) {               // key: a-<id>-<ml>
   const [, id, ml] = key.split("-");
   const a = byId(id);
-  if (!a || !a.prices[ml]) return null;
+  if (!a || !a.prices[ml] || !a.in_stock) return null;
   return { a, ml, price: a.prices[ml], label: volName(ml, a) };
 }
 function cartStats() {
@@ -178,57 +285,6 @@ function cartStats() {
   for (const [k, q] of Object.entries(S.cart)) { const it = itemOf(k); if (it) { count += q; total += it.price * q; } }
   return { count, total };
 }
-function toast(t) {
-  const el = document.getElementById("toast");
-  el.textContent = t; el.classList.add("show");
-  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1400);
-}
-
-/* ---------- нижня головна кнопка ---------- */
-let mainHandler = null;
-function setMain(text, handler) {
-  mainHandler = handler;
-  const fb = document.getElementById("fallbackBtn");
-  if (inTg) {
-    tg.MainButton.offClick(onMain);
-    if (!text) { tg.MainButton.hide(); return; }
-    tg.MainButton.setParams({ text, color: "#c9a96e", text_color: "#0a1222", is_visible: true, is_active: true });
-    tg.MainButton.onClick(onMain);
-  } else {
-    fb.style.display = text ? "block" : "none";
-    fb.textContent = text || "";
-    fb.onclick = onMain;
-  }
-}
-function onMain() { mainHandler && mainHandler(); }
-function setBack(show) { if (inTg) show ? tg.BackButton.show() : tg.BackButton.hide(); }
-function goBack() {
-  if (document.getElementById("sheet").classList.contains("show")) return closeFilters();
-  S.view === "cart" && S.current ? S.view = "detail" : (S.view = "list", S.current = null);
-  render();
-}
-if (inTg) tg.BackButton.onClick(goBack);
-
-function topBar(withBack) {
-  const { count } = cartStats();
-  return `<div class="top">
-    ${withBack && !inTg ? `<button class="iconbtn" id="back">${ICON.back}</button>` : `<span></span>`}
-    <div class="logo serif">${esc(S.catalog.shop_name)}</div>
-    <button class="iconbtn" id="bag">${ICON.bag}${count ? `<span class="dot">${count}</span>` : ""}</button>
-  </div>`;
-}
-function bindTop() {
-  const b = document.getElementById("back"); if (b) b.onclick = goBack;
-  document.getElementById("bag").onclick = () => { S.view = "cart"; render(); };
-}
-function cartButton() {
-  const { count, total } = cartStats();
-  setMain(count ? `Кошик · ${count} · ${money(total)}` : "", () => { S.view = "cart"; render(); });
-}
-
-/* ---------- фільтри ---------- */
-const decants = a => Object.keys(a.prices).filter(ml => !isFull(a, ml)).sort((x, y) => +x - +y);
-const minPrice = a => { const d = decants(a); return Math.min(...(d.length ? d : Object.keys(a.prices)).map(ml => a.prices[ml])); };
 function allVols() {
   const set = new Set();
   S.catalog.aromas.forEach(a => decants(a).forEach(ml => set.add(ml)));
@@ -243,176 +299,355 @@ function matches(a, f) {
   if (f.seasons.length && !f.seasons.some(s => (a.seasons || []).includes(s))) return false;
   return true;
 }
-const filterCount = () => S.f.vols.length + S.f.seasons.length;
 
-function openFilters() {
-  S.draft = { vols: [...S.f.vols], seasons: [...S.f.seasons] };
-  renderSheet();
-  document.getElementById("overlay").classList.add("show");
-  document.getElementById("sheet").classList.add("show");
-  setMain("", null); setBack(true); haptic();
+/* ================= головна кнопка і «назад» ================= */
+let mainHandler = null;
+function onMain() { mainHandler && mainHandler(); }
+function setMain(text, handler) {
+  mainHandler = handler;
+  if (inTg) {
+    tg.MainButton.offClick(onMain);
+    if (!text) { tg.MainButton.hide(); return; }
+    tg.MainButton.setParams({ text, color: "#D9C3A0", text_color: "#070B18", is_visible: true, is_active: true });
+    tg.MainButton.onClick(onMain);
+  } else {
+    const fb = $("fallbackBtn");
+    fb.style.display = text ? "block" : "none";
+    document.body.classList.toggle("fb", !!text);
+    fb.textContent = text || "";
+    fb.onclick = onMain;
+  }
 }
-function closeFilters() {
-  document.getElementById("overlay").classList.remove("show");
-  document.getElementById("sheet").classList.remove("show");
-  render();
+function syncChrome() {
+  const { count, total } = cartStats();
+  document.querySelectorAll("[data-bag]").forEach(b => {
+    b.innerHTML = ICON.bag + (count ? `<span class="count">${count}</span>` : "");
+  });
+  const inDetail = !!S.current;
+  if (S.sheet === "cart") setMain(count ? `Оформити · ${money(total)}` : "", checkout);
+  else if (S.sheet === "filters") setMain("", null);
+  else if (inDetail) {
+    const a = byId(S.current);
+    if (a && a.in_stock) setMain(`Додати ${isFull(a, S.ml) ? "флакон" : S.ml + " мл"} · ${money(a.prices[S.ml])}`, addToCart);
+    else setMain("", null);
+  } else setMain(count ? `Кошик · ${count} · ${money(total)}` : "", () => openSheet("cart"));
+  const backNeeded = !!(S.sheet || inDetail);
+  if (inTg) backNeeded ? tg.BackButton.show() : tg.BackButton.hide();
+  // поки відкрита шторка або сторінка аромату, свайп вниз не згортає Mini App
+  try { if (can("7.7")) backNeeded ? tg.disableVerticalSwipes() : tg.enableVerticalSwipes(); } catch (e) {}
 }
-document.getElementById("overlay").onclick = closeFilters;
+function goBack() {
+  if (S.sheet) return closeSheet();
+  if (S.current) return closeDetail();
+}
+if (inTg) tg.BackButton.onClick(goBack);
 
-function renderSheet() {
-  const d = S.draft;
-  const n = S.catalog.aromas.filter(a => matches(a, d)).length;
-  const sheet = document.getElementById("sheet");
-  sheet.innerHTML = `<div class="grab"></div><h3 class="serif">Фільтри</h3>
-    <div class="sec">Обʼєм</div>
-    <div class="chips">${allVols().map(ml =>
-      `<button class="chip ${d.vols.includes(ml) ? "on" : ""}" data-v="${ml}">${volName(ml)}</button>`).join("")}</div>
-    <div class="sec">Сезон</div>
-    <div class="chips">${SEASONS.map(([s, e]) =>
-      `<button class="chip ${d.seasons.includes(s) ? "on" : ""}" data-s="${s}">${e} ${cap(s)}</button>`).join("")}</div>
-    <div class="sheetbtns">
-      <button class="ghost" id="reset">Скинути</button>
-      <button class="solid" id="apply">${n ? `Показати ${n}` : "Нічого не знайдено"}</button>
-    </div>`;
-  const toggle = (arr, v) => arr.includes(v) ? arr.splice(arr.indexOf(v), 1) : arr.push(v);
-  sheet.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { toggle(d.vols, b.dataset.v); haptic("soft"); renderSheet(); });
-  sheet.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { toggle(d.seasons, b.dataset.s); haptic("soft"); renderSheet(); });
-  sheet.querySelector("#reset").onclick = () => { d.vols = []; d.seasons = []; renderSheet(); };
-  sheet.querySelector("#apply").onclick = () => { S.f = d; closeFilters(); };
+function toast(t) {
+  const el = $("toast");
+  el.textContent = t; el.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 1600);
 }
 
-/* ---------- екрани ---------- */
+/* ================= список ================= */
 function cardPrice(a) {
+  if (!a.in_stock) return "Немає";
   const own = S.f.vols.map(v => volKey(a, v)).filter(Boolean);
   if (own.length === 1) return `${volName(own[0], a)} · ${money(a.prices[own[0]])}`;
   return `від ${money(minPrice(a))}`;
 }
-
-function renderList() {
+function renderCards(enter = false) {
   const list = S.catalog.aromas.filter(a => matches(a, S.f));
-  const fc = filterCount();
-  const tags = [...S.f.vols.map(v => [`v`, v, volName(v)]), ...S.f.seasons.map(s => [`s`, s, cap(s)])];
-  $app.innerHTML = `
-    ${topBar(false)}
-    <div class="searchrow">
-      <label class="search">${ICON.search}<input id="q" placeholder="Знайти аромат" value="${esc(S.q)}" autocomplete="off"></label>
-      <button class="filterbtn ${fc ? "on" : ""}" id="filters">${ICON.filter}Фільтри${fc ? ` · ${fc}` : ""}</button>
-    </div>
-    <div class="title serif">Наша колекція</div>
-    <div class="sub">Оригінальні парфуми на розпив</div>
-    ${tags.length ? `<div class="active">${tags.map(([t, v, l]) =>
-      `<button class="tag" data-t="${t}" data-v="${v}">${esc(l)}<span>✕</span></button>`).join("")}</div>` : ""}
-    <div class="list">${list.length ? list.map(a => `
-      <button class="card ${a.in_stock ? "" : "oos"}" data-id="${a.id}">
-        <div class="ph">${a.image ? `<img src="${a.image}" alt="">` : ""}</div>
-        <div class="info">
-          <div class="brand">${esc(a.brand)}</div>
-          <div class="name serif">${esc(a.name)}</div>
-          <div class="tl">${esc(a.tagline || a.notes)}</div>
-          <div class="bottom">
-            <span class="season">${(a.seasons || []).map(s => (SEASONS.find(x => x[0] === s) || [, ""])[1]).join(" ")}</span>
-            <span class="price">${a.in_stock ? cardPrice(a) : "Немає"}</span>
-          </div>
-        </div>
-        ${a.is_new ? `<span class="new">Новинка</span>` : ""}
-      </button>`).join("")
-      : `<div class="empty">Нічого не знайдено 🕊<br><button class="linkbtn" id="clearAll">Скинути пошук і фільтри</button></div>`}
-    </div>`;
-  bindTop();
-  const q = document.getElementById("q");
-  q.oninput = () => { S.q = q.value; const pos = q.selectionStart; renderList(); const n = document.getElementById("q"); n.focus(); n.setSelectionRange(pos, pos); };
-  document.getElementById("filters").onclick = openFilters;
-  $app.querySelectorAll(".tag").forEach(b => b.onclick = () => {
-    const arr = b.dataset.t === "v" ? S.f.vols : S.f.seasons; arr.splice(arr.indexOf(b.dataset.v), 1); render();
+  const box = $("cards");
+  const delays = [0, 45, 80, 105, 125, 140];  // хвиля, що стискається — не метроном
+  box.classList.toggle("enter", enter);
+  box.innerHTML = list.length ? list.map((a, i) => `
+    <button class="card press ${a.in_stock ? "" : "out"}" data-id="${a.id}" style="--d:${delays[Math.min(i, delays.length - 1)]}ms">
+      <span class="tile">${a.image ? `<img src="${a.image}" alt="${esc(a.brand + " " + a.name)}" loading="${i < 4 ? "eager" : "lazy"}">` : ""}</span>
+      <span class="info">
+        <span class="brand">${esc(a.brand)}</span>
+        <span class="name">${esc(a.name)}</span>
+        <span class="tagline">${esc(a.tagline || a.notes || "")}</span>
+        <span class="meta"><span class="seasons">${seasonIcons(a)}</span><span class="price">${cardPrice(a)}</span></span>
+      </span>
+      ${a.is_new && a.in_stock ? `<span class="new">Нове</span>` : ""}
+    </button>`).join("")
+    : `<div class="empty">Нічого не знайшли.<br><button class="linkbtn" id="clearAll">Скинути пошук і фільтри</button></div>`;
+  box.querySelectorAll(".card").forEach(c => c.onclick = () => { haptic.tap(); openDetail(c.dataset.id, c); });
+  const ca = $("clearAll");
+  if (ca) ca.onclick = () => { S.q = ""; $("q").value = ""; S.f = { vols: [], seasons: [] }; renderList(); };
+}
+function renderTools() {
+  const n = S.f.vols.length + S.f.seasons.length;
+  const fb = $("filters");
+  fb.classList.toggle("on", n > 0);
+  fb.innerHTML = ICON.filter + (n ? `Фільтри · ${n}` : "Фільтри");
+  const tags = [...S.f.vols.map(v => ["v", v, volName(v)]), ...S.f.seasons.map(s => ["s", s, cap(s)])];
+  const box = $("tags");
+  box.hidden = !tags.length;
+  box.innerHTML = tags.map(([t, v, l]) => `<button class="tag" data-t="${t}" data-v="${v}">${esc(l)}${ICON.x}</button>`).join("");
+  box.querySelectorAll(".tag").forEach(b => b.onclick = () => {
+    const arr = b.dataset.t === "v" ? S.f.vols : S.f.seasons;
+    arr.splice(arr.indexOf(b.dataset.v), 1); renderList();
   });
-  const ca = document.getElementById("clearAll");
-  if (ca) ca.onclick = () => { S.q = ""; S.f = { vols: [], seasons: [] }; render(); };
-  $app.querySelectorAll(".card").forEach(b => b.onclick = () => openAroma(b.dataset.id));
-  setBack(false);
-  cartButton();
 }
+function renderList(enter = false) { renderTools(); renderCards(enter); syncChrome(); }
 
-function openAroma(id) {
-  S.current = id; S.view = "detail";
-  const a = byId(id);
-  const pref = S.f.vols.map(v => volKey(a, v)).find(Boolean);
-  S.ml = pref || (a.prices["5"] ? "5" : Object.keys(a.prices)[0]);
-  haptic(); render(); window.scrollTo(0, 0);
-}
-
-function renderDetail() {
-  const a = byId(S.current);
+/* ================= сторінка аромату: плитка з флаконом «виростає» в сцену ================= */
+let busy = false;
+function detailHTML(a) {
+  const decs = decants(a);
   const fullMl = a.full_ml ? String(a.full_ml) : null;
-  const full = fullMl ? a.prices[fullMl] : null;
-  const bigVols = decants(a).some(ml => +ml >= 20);
-  const seasons = (a.seasons || []).map(s => { const x = SEASONS.find(z => z[0] === s); return `${x ? x[1] : ""} ${cap(s)}`; }).join(" · ");
-  $app.innerHTML = `
-    ${topBar(true)}
-    <div class="hero">${a.image ? `<img src="${a.image}" alt="">` : ""}${a.is_new ? `<span class="new">Новинка</span>` : ""}</div>
-    <div class="dbody">
-      <div class="brand">${esc(a.brand)}</div>
-      <h2 class="serif">${esc(a.name)}</h2>
-      <div class="meta">${esc(cap(a.family))} · ${esc(a.gender)}${seasons ? `<br>${seasons}` : ""}</div>
-      <p class="desc">${esc(a.description)}</p>
-      <div class="notes"><span class="brand">Ноти</span>${esc(a.notes)}</div>
-      ${a.in_stock ? `
-        <div class="sec">Оберіть обʼєм</div>
-        <div class="vols">
-          ${decants(a).map(ml => `
-            <button class="vol ${S.ml === ml ? "on" : ""}" data-ml="${ml}">
-              <div class="ml">${ml} мл</div><div class="pr">${money(a.prices[ml])}</div></button>`).join("")}
-          ${full ? `<button class="vol full ${S.ml === fullMl ? "on" : ""}" data-ml="${fullMl}">
-              <div class="ml">Повний флакон ${fullMl} мл</div><div class="pr">${money(full)}</div></button>` : ""}
-        </div>
-        ${bigVols ? `<div class="hint">У ціну 20 і 30 мл уже входить знижка 5% і 10%</div>` : ""}`
-      : `<div class="oosnote">Зараз немає в наявності</div>`}
-      <div class="orig">Як завжди оригінал 💯</div>
+  const facts = [cap(a.family), a.gender].filter(Boolean).join(", ");
+  return `
+    <header class="top">
+      ${inTg ? "<span></span>" : `<button class="back" id="backDetail" aria-label="Назад">${ICON.back}</button>`}
+      <div class="logo">${esc(S.catalog.shop_name || "Kiorchik Aroma")}</div>
+      <button class="bag press" data-bag aria-label="Кошик"></button>
+    </header>
+    <div class="stage" id="stage">${a.image ? `<img src="${a.image}" alt="${esc(a.brand + " " + a.name)}">` : ""}</div>
+    <div class="detail">
+      <div class="support">
+        <div class="brand">${esc(a.brand)}</div>
+        <h1>${esc(a.name)}</h1>
+        <div class="facts"><span>${esc(facts)}</span><span class="seasons">${seasonIcons(a)}</span></div>
+      </div>
+      <div class="support">
+        ${a.description ? `<p class="desc">${esc(a.description)}</p>` : ""}
+        ${a.notes ? `<p class="notes"><b>Ноти:</b> ${esc(a.notes)}</p>` : ""}
+      </div>
+      <div class="support">
+        ${a.in_stock ? `
+          <div class="h">Обʼєм</div>
+          <div class="vols">
+            ${decs.map(ml => `<button class="vol press ${S.ml === ml ? "on" : ""}" data-ml="${ml}"><span class="ml">${ml} мл</span><span class="pr">${money(a.prices[ml])}</span></button>`).join("")}
+            ${fullMl && a.prices[fullMl] ? `<button class="vol full press ${S.ml === fullMl ? "on" : ""}" data-ml="${fullMl}"><span class="ml">Повний флакон ${fullMl} мл</span><span class="pr">${money(a.prices[fullMl])}</span></button>` : ""}
+          </div>
+          ${decs.some(ml => +ml >= 20) ? `<div class="hint">У ціну 20 і 30 мл уже входить знижка 5% і 10%</div>` : ""}`
+        : `<div class="oos">Зараз немає в наявності</div>`}
+        <div class="orig">Як завжди, оригінал.</div>
+      </div>
     </div>`;
-  bindTop();
-  $app.querySelectorAll(".vol").forEach(b => b.onclick = () => { S.ml = b.dataset.ml; haptic("soft"); render(); });
-  setBack(true);
-  if (a.in_stock) {
-    setMain(`Додати ${isFull(a, S.ml) ? "флакон" : S.ml + " мл"} · ${money(a.prices[S.ml])}`, () => {
-      const key = `a-${a.id}-${S.ml}`;
-      S.cart[key] = (S.cart[key] || 0) + 1; saveCart();
-      haptic("medium"); toast("Додано в кошик ✓");
-      S.view = "list"; S.current = null; render();
-    });
-  } else setMain("", null);
+}
+function bindDetail(a) {
+  const body = $("layerBody");
+  body.querySelectorAll(".vol").forEach(b => b.onclick = () => {
+    if (S.ml === b.dataset.ml) return;
+    S.ml = b.dataset.ml; haptic.select();
+    body.querySelectorAll(".vol").forEach(x => x.classList.toggle("on", x === b));
+    syncChrome();
+  });
+  body.querySelectorAll("[data-bag]").forEach(b => b.onclick = () => openSheet("cart"));
+  const bd = $("backDetail"); if (bd) bd.onclick = goBack;
 }
 
+function rectOf(el) { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; }
+function visible(r) { return r.w > 0 && r.y < innerHeight && r.y + r.h > 0; }
+
+function openDetail(id, cardEl) {
+  if (busy) return;
+  const a = byId(id);
+  S.current = id;
+  const pref = S.f.vols.map(v => volKey(a, v)).find(Boolean);
+  S.ml = pref || (a.prices["5"] && !isFull(a, "5") ? "5" : decants(a)[0] || Object.keys(a.prices)[0]);
+  const layer = $("layer"), body = $("layerBody");
+  body.innerHTML = detailHTML(a);
+  bindDetail(a);
+  layer.scrollTop = 0;
+  layer.classList.add("open"); layer.setAttribute("aria-hidden", "false");
+  document.body.classList.add("locked");
+  syncChrome();
+  const tile = cardEl && cardEl.querySelector(".tile");
+  const stage = $("stage");
+  if (reduce || !tile) { layer.classList.add("shown"); return; }
+  // FLIP: копія плитки летить із картки в сцену; і плитка, і сцена мають пропорції 92:118
+  const from = rectOf(tile), to = rectOf(stage);
+  const fly = makeFlyer(a, to, 28);
+  stage.style.visibility = "hidden"; tile.style.visibility = "hidden";
+  busy = true;
+  const s = from.w / to.w;
+  const anim = fly.animate([
+    { transform: `translate(${from.x}px, ${from.y}px) scale(${s})`, borderRadius: `${14 / s}px` },
+    { transform: `translate(${to.x}px, ${to.y}px) scale(1)`, borderRadius: "28px" },
+  ], { duration: 460, easing: "cubic-bezier(.32,.72,0,1)" });
+  requestAnimationFrame(() => setTimeout(() => layer.classList.add("shown"), 60));  // текст — на такт пізніше
+  anim.onfinish = () => { stage.style.visibility = ""; tile.style.visibility = ""; fly.remove(); busy = false; };
+}
+function makeFlyer(a, r, radius) {
+  const fly = document.createElement("div");
+  fly.className = "flyer";
+  fly.style.cssText = `left:0;top:0;width:${r.w}px;height:${r.h}px;border-radius:${radius}px;transform:translate(${r.x}px,${r.y}px)`;
+  fly.innerHTML = a.image ? `<img src="${a.image}" alt="">` : "";
+  document.body.appendChild(fly);
+  return fly;
+}
+function closeDetail() {
+  if (busy) return;
+  const layer = $("layer"), stage = $("stage");
+  const id = S.current;
+  const finish = () => {
+    layer.classList.remove("open", "shown", "closing"); layer.setAttribute("aria-hidden", "true");
+    $("layerBody").innerHTML = ""; document.body.classList.remove("locked");
+    busy = false;
+  };
+  S.current = null;
+  renderCards(); syncChrome();
+  const back = document.querySelector(`.card[data-id="${id}"] .tile`);
+  if (reduce || !back || !stage || !visible(rectOf(back)) || !visible(rectOf(stage))) {
+    layer.classList.add("closing");
+    setTimeout(finish, reduce ? 0 : 220);
+    busy = !reduce;
+    return;
+  }
+  // той самий шлях назад: сцена стискається в плитку картки
+  const from = rectOf(stage), to = rectOf(back);
+  const fly = makeFlyer(byId(id), from, 28);
+  stage.style.visibility = "hidden"; back.style.visibility = "hidden";
+  layer.classList.add("closing");
+  busy = true;
+  const s = to.w / from.w;
+  const anim = fly.animate([
+    { transform: `translate(${from.x}px, ${from.y}px) scale(1)`, borderRadius: "28px" },
+    { transform: `translate(${to.x}px, ${to.y}px) scale(${s})`, borderRadius: `${14 / s}px` },
+  ], { duration: 380, easing: "cubic-bezier(.32,.72,0,1)" });
+  anim.onfinish = () => { back.style.visibility = ""; fly.remove(); finish(); };
+}
+
+/* ================= у кошик: флакон летить дугою до сумки ================= */
+function addToCart() {
+  const a = byId(S.current);
+  if (!a || !a.in_stock) return;
+  const key = `a-${a.id}-${S.ml}`;
+  const land = () => {
+    S.cart[key] = (S.cart[key] || 0) + 1; saveCart();
+    syncChrome();
+    const bag = document.querySelector(".layer [data-bag]") || document.querySelector("[data-bag]");
+    if (bag && !reduce) bag.animate([{ transform: "scale(1)" }, { transform: "scale(1.16)" }, { transform: "scale(1)" }],
+                                    { duration: 320, easing: "cubic-bezier(.23,1,.32,1)" });
+    haptic.success();  // відчуття і рух — в одному кадрі
+  };
+  const stage = $("stage");
+  const bag = document.querySelector(".layer [data-bag]");
+  if (reduce || low || !stage || !bag) { land(); toast(`Додано: ${volName(S.ml, a)}`); return; }
+  const from = rectOf(stage), to = rectOf(bag);
+  const size = 64;
+  const sx = from.x + from.w / 2 - size / 2, sy = from.y + from.h / 2 - size * 0.64;
+  const tx = to.x + to.w / 2 - size / 2, ty = to.y + to.h / 2 - size * 0.64;
+  const fly = makeFlyer(a, { x: sx, y: sy, w: size, h: size * 1.28 }, 12);
+  fly.style.transformOrigin = "50% 50%";
+  const mx = (sx + tx) / 2, my = Math.min(sy, ty) - 40;   // вершина дуги
+  fly.animate([
+    { transform: `translate(${sx}px, ${sy}px) scale(1)`, opacity: 1 },
+    { transform: `translate(${mx}px, ${my}px) scale(.7)`, opacity: 1, offset: .55 },
+    { transform: `translate(${tx}px, ${ty}px) scale(.22)`, opacity: .35 },
+  ], { duration: 560, easing: "cubic-bezier(.77,0,.175,1)" }).onfinish = () => { fly.remove(); land(); };
+}
+
+/* ================= шторки: фільтри і кошик ================= */
+function openSheet(kind) {
+  S.sheet = kind;
+  if (kind === "filters") S.draft = { vols: [...S.f.vols], seasons: [...S.f.seasons] };
+  renderSheet();
+  const sheet = $("sheet");
+  sheet.style.transform = "";
+  $("scrim").style.opacity = "";
+  $("scrim").classList.add("show"); sheet.classList.add("show");
+  document.body.classList.add("locked");
+  haptic.tap(); syncChrome();
+}
+function closeSheet() {
+  const sheet = $("sheet");
+  sheet.style.transform = ""; $("scrim").style.opacity = "";
+  sheet.classList.remove("show"); $("scrim").classList.remove("show");
+  if (!S.current) document.body.classList.remove("locked");
+  S.sheet = null; syncChrome();
+}
+$("scrim").onclick = closeSheet;
+
+function renderSheet() {
+  if (S.sheet === "filters") renderFilters(); else renderCart();
+}
+function renderFilters() {
+  const d = S.draft;
+  const n = S.catalog.aromas.filter(a => matches(a, d)).length;
+  $("sheetTitle").textContent = "Фільтри";
+  $("sheetBody").innerHTML = `
+    <div class="h">Обʼєм</div>
+    <div class="chips">${allVols().map(ml => `<button class="chip press ${d.vols.includes(ml) ? "on" : ""}" data-v="${ml}">${volName(ml)}</button>`).join("")}</div>
+    <div class="h">Сезон</div>
+    <div class="chips">${SEASONS.map(s => `<button class="chip press ${d.seasons.includes(s) ? "on" : ""}" data-s="${s}">${ICON[s]}${cap(s)}</button>`).join("")}</div>
+    <div class="sheet-actions">
+      <button class="ghost press" id="reset">Скинути</button>
+      <button class="solid press" id="apply">${n ? `Показати ${n}` : "Нічого не знайдено"}</button>
+    </div>`;
+  const toggle = (arr, v) => arr.includes(v) ? arr.splice(arr.indexOf(v), 1) : arr.push(v);
+  const body = $("sheetBody");
+  body.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { toggle(d.vols, b.dataset.v); haptic.select(); renderFilters(); });
+  body.querySelectorAll("[data-s]").forEach(b => b.onclick = () => { toggle(d.seasons, b.dataset.s); haptic.select(); renderFilters(); });
+  $("reset").onclick = () => { d.vols = []; d.seasons = []; haptic.select(); renderFilters(); };
+  $("apply").onclick = () => { S.f = d; closeSheet(); renderList(); window.scrollTo({ top: 0 }); };
+}
 function renderCart() {
   const entries = Object.entries(S.cart).filter(([k]) => itemOf(k));
   const { total } = cartStats();
-  $app.innerHTML = `${topBar(true)}<div class="title serif" style="margin-top:6px">Кошик</div><div class="cart" style="margin-top:14px">
-    ${entries.length ? entries.map(([k, q]) => { const it = itemOf(k); return `
+  $("sheetTitle").textContent = "Кошик";
+  $("sheetBody").innerHTML = entries.length ? entries.map(([k, q]) => { const it = itemOf(k); return `
       <div class="row">
-        <div class="ph">${it.a.image ? `<img src="${it.a.image}" alt="">` : ""}</div>
-        <div class="t"><div class="brand">${esc(it.a.brand)}</div><div class="n">${esc(it.a.name)}</div>
-          <div class="s">${it.label} · ${money(it.price)}</div></div>
-        <div class="qty"><button data-k="${k}" data-d="-1">−</button><b>${q}</b><button data-k="${k}" data-d="1">+</button></div>
+        <span class="tile">${it.a.image ? `<img src="${it.a.image}" alt="">` : ""}</span>
+        <div class="t"><div class="n">${esc(it.a.name)}</div><div class="s">${esc(it.a.brand)} · ${it.label} · ${money(it.price)}</div></div>
+        <div class="qty"><button class="press" data-k="${k}" data-d="-1" aria-label="Менше">−</button><b>${q}</b><button class="press" data-k="${k}" data-d="1" aria-label="Більше">+</button></div>
       </div>`; }).join("") + `<div class="total"><span>Разом</span><span>${money(total)}</span></div>`
-    : `<div class="empty">Кошик порожній<br>Оберіть аромат у колекції</div>`}
-  </div>`;
-  bindTop();
-  $app.querySelectorAll(".qty button").forEach(b => b.onclick = () => {
+    : `<div class="empty">Кошик порожній.<br>Оберіть аромат у колекції.</div>`;
+  $("sheetBody").querySelectorAll(".qty button").forEach(b => b.onclick = () => {
     const k = b.dataset.k; S.cart[k] = (S.cart[k] || 0) + +b.dataset.d;
     if (S.cart[k] <= 0) delete S.cart[k];
-    saveCart(); haptic("soft"); render();
+    saveCart(); haptic.select(); renderCart(); syncChrome();
   });
-  setBack(true);
-  setMain(entries.length ? `Оформити · ${money(total)}` : "", checkout);
 }
 
+// тягнемо шторку пальцем: 1:1 вниз, вгору — з тертям; скидаємо ривком або на 30% висоти
+(function dragSheet() {
+  const head = $("sheetHead"), sheet = $("sheet"), scrim = $("scrim");
+  let startY = 0, dy = 0, dragging = false, pid = null, samples = [];
+  head.addEventListener("pointerdown", e => {
+    if (dragging || !S.sheet) return;            // другий палець ігноруємо
+    dragging = true; pid = e.pointerId; startY = e.clientY; dy = 0;
+    samples = [{ y: e.clientY, t: performance.now() }];
+    head.setPointerCapture(pid); sheet.classList.add("dragging");
+  });
+  head.addEventListener("pointermove", e => {
+    if (!dragging || e.pointerId !== pid) return;
+    const d = e.clientY - startY;
+    dy = d >= 0 ? d : -Math.pow(-d, .6);         // вгору — з опором, без «стіни»
+    sheet.style.transform = `translateY(${dy}px)`;
+    scrim.style.opacity = String(Math.max(0, 1 - dy / sheet.offsetHeight));
+    const now = performance.now();
+    samples.push({ y: e.clientY, t: now });
+    samples = samples.filter(p => now - p.t < 120); // швидкість — лише за останні ~100 мс
+  });
+  const end = e => {
+    if (!dragging || (e && e.pointerId !== pid)) return;
+    dragging = false; sheet.classList.remove("dragging");
+    const now = performance.now(), recent = samples.filter(p => now - p.t < 120);
+    const v = recent.length > 1 ? (recent[recent.length - 1].y - recent[0].y) / Math.max(1, recent[recent.length - 1].t - recent[0].t) : 0;
+    if (dy > sheet.offsetHeight * .3 || (dy > 10 && v > .11)) closeSheet();  // ривок або 30% висоти
+    else { sheet.style.transform = ""; scrim.style.opacity = ""; }
+  };
+  head.addEventListener("pointerup", end);
+  head.addEventListener("pointercancel", end);
+})();
+
+/* ================= оформлення ================= */
 function checkout() {
   const payload = JSON.stringify({ cart: Object.entries(S.cart).filter(([k]) => itemOf(k)) });
-  if (inTg) { tg.sendData(payload); }   // бот отримає кошик і продовжить оформлення в чаті
+  if (inTg) tg.sendData(payload);   // бот отримає кошик і продовжить оформлення в чаті
   else alert("Демо поза Telegram. Бот отримав би:\n" + payload);
 }
 
-function render() {
-  ({ list: renderList, detail: renderDetail, cart: renderCart })[S.view]();
-}
+/* ================= старт ================= */
+$("searchIcon").innerHTML = ICON.search;
+document.querySelector("main [data-bag]").onclick = () => openSheet("cart");
+$("filters").onclick = () => openSheet("filters");
+$("q").addEventListener("input", e => { S.q = e.target.value; renderCards(); });
 
 /* Каталог. GitHub Pages кешує файли до 10 хв, тому на *.github.io спершу беремо свіжий
    catalog.json напряму з репозиторію через GitHub API (затримка ~1 хв), а фото — з raw.githubusercontent.
@@ -442,8 +677,14 @@ async function loadCatalog() {
   return r.json();
 }
 loadCatalog()
-  .then(data => { S.catalog = data; render(); })
-  .catch(() => { $app.innerHTML = `<div class="empty">Не вдалося завантажити каталог</div>`; });
+  .then(data => {
+    S.catalog = data;
+    if (data.shop_name) document.querySelectorAll(".logo").forEach(l => l.textContent = data.shop_name);
+    let first = true;
+    try { first = !sessionStorage.getItem("seen"); sessionStorage.setItem("seen", "1"); } catch (e) {}
+    renderList(first && !reduce);
+  })
+  .catch(() => { $("cards").innerHTML = `<div class="empty">Не вдалося завантажити каталог. Закрийте й відкрийте магазин ще раз.</div>`; });
 </script>
 </body>
 </html>
